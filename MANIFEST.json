@@ -17,18 +17,18 @@
     },
     {
       "path": ".gitignore",
-      "bytes": 896,
-      "sha256": "d11c368305979dc16bcb974bcd993c0fac134b7aa70ed95ebf377a0b9964981a"
+      "bytes": 917,
+      "sha256": "cae5679d9acd79e1477f01a376e83dc5ed2ba18ceb6e40fea99a745c46fc2ebf"
     },
     {
       "path": "README.md",
-      "bytes": 4444,
-      "sha256": "e7b5e601a22a4780f65acc6492145383ffff90c3dd72f8dc1d943ec8339699ba"
+      "bytes": 4772,
+      "sha256": "5f24249a2ca98c3bd9b66da155b56c05d983953c8ec2618730756a7996506156"
     },
     {
       "path": "RELEASE_NOTES.txt",
-      "bytes": 4999,
-      "sha256": "6c2a877cdb6e9d3455484dc4c84869936f4ea1f27cdeb8459e0909481dd9e923"
+      "bytes": 5140,
+      "sha256": "2eb5d4bb3e64197c837b7f350dd492f441979d1bf54b27dea1e42e36b606cb96"
     },
     {
       "path": "app_rag.py",
@@ -37,8 +37,8 @@
     },
     {
       "path": "build_student_zip.py",
-      "bytes": 4857,
-      "sha256": "860f28da27bea0b597788934a1b905cbe7ca16cac98fb8c1457fd79adc837649"
+      "bytes": 4879,
+      "sha256": "d3d8a70dee76f2fc83c5204407e5040269c84c3ccca0985bcbf412a89730817f"
     },
     {
       "path": "check_setup.py",
@@ -84,6 +84,11 @@
       "path": "gemini_quota_debugger.py",
       "bytes": 10690,
       "sha256": "022696ca51ff5947ed662b64028ff78584b403197ef36825c5bec7431d813025"
+    },
+    {
+      "path": "offline_network.py",
+      "bytes": 1843,
+      "sha256": "1ea2475b6bbc29927fb61b3088e6f91537441f62cde5302e70dd208ff7fea7b1"
     },
     {
       "path": "pdf/README.txt",
@@ -142,8 +147,8 @@
     },
     {
       "path": "run_offline_checks.py",
-      "bytes": 1422,
-      "sha256": "98688044b1cbb181d770ac0f617e91766f878dc2df1610f75f9cb86453de20d2"
+      "bytes": 1157,
+      "sha256": "96049b3523c1d18daece57630aac6416ef9522c345e7e4d692721284c02d692f"
     },
     {
       "path": "runtime_config.py",
@@ -167,8 +172,8 @@
     },
     {
       "path": "test_student_release.py",
-      "bytes": 13671,
-      "sha256": "d4cb7ee491043abd1e007e48614771600396275db00de126c5686f02124b35ae"
+      "bytes": 14610,
+      "sha256": "2b0f87f07d069b98b2958e5379ef73b61e84645ab76baf8f0416c0bd2f34d108"
     },
     {
       "path": "uv.lock",
@@ -177,8 +182,8 @@
     },
     {
       "path": "verify_adc_auth.py",
-      "bytes": 8416,
-      "sha256": "6761de3ee54c06a973fd523872982a30e8921d4adf014693793082084ad6b3dd"
+      "bytes": 8296,
+      "sha256": "5c4610220c7228f9567d7f711cc5750fcb93bc1b4ce4083094dd77e9e3deb527"
     }
   ]
 }

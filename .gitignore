@@ -20,6 +20,7 @@
 !/rag_experiment_logger.py
 !/check_setup.py
 !/run_offline_checks.py
+!/offline_network.py
 !/verify_adc_auth.py
 !/test_embedding_cache.py
 !/test_student_release.py

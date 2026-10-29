@@ -14,6 +14,7 @@ from unittest.mock import Mock, patch
 
 from google.auth.credentials import Credentials
 from google.auth.exceptions import DefaultCredentialsError
+from offline_network import offline_network
 
 # Importing the service must not read a developer's .env file during this check.
 with patch("dotenv.load_dotenv", return_value=False):
@@ -44,8 +45,7 @@ class ADCOnlyTests(unittest.TestCase):
         self.default = self.enterContext(
             patch("google.auth.default", return_value=(self.credentials, "detected-project"))
         )
-        for target in ("socket.socket.connect", "socket.socket.connect_ex", "socket.create_connection"):
-            self.enterContext(patch(target, side_effect=AssertionError("Network access is forbidden")))
+        self.enterContext(offline_network())
 
     def service_without_database(self):
         service = object.__new__(rag_service.RAGService)

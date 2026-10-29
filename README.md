@@ -1,5 +1,7 @@
 # RAG Step-by-Step Student Studio 1.2.0
 
+[![Offline checks](https://github.com/venture21/RAG-tutorial/actions/workflows/offline-checks.yml/badge.svg)](https://github.com/venture21/RAG-tutorial/actions/workflows/offline-checks.yml)
+
 PDF 읽기 → 청크 분할 → 임베딩 저장 → 근거 검색 → 답변을 단계별로 확인하는 PC용 학습 서비스입니다.
 왼쪽 설정 패널 320px, 오른쪽 단계 카드 2열과 최소 작업 폭 1280px를 유지합니다.
 
@@ -55,7 +57,8 @@ CLI도 ADC 전용이며 웹과 같은 로직을 사용합니다. 누적 갱신�
 사용 방법은 [참고 코드 안내](ref_code/README.txt)를 확인하세요. 본인 ADC로 호출하며 실제 대화에는 비용이 발생할 수 있습니다.
 수정 내역·검증 범위는 [RELEASE_NOTES.txt](RELEASE_NOTES.txt)를 확인하세요.
 
-macOS Python 3.11 새 가상환경에서 검증합니다. Windows·Linux 실제 기기 및 실제 클라우드 호출은 미검증입니다.
+macOS Python 3.11 새 가상환경에서 검증했고, GitHub Actions는 macOS·Linux·Windows에서 설치·오프라인 검사 38개·패키징을 수행합니다.
+실제 사용자 PC에서의 GUI·ADC 설정과 실제 클라우드 호출은 별도 확인이 필요합니다.
 `python build_student_zip.py`는 허용 목록만 ZIP으로 묶고 금지 파일과 비밀정보 패턴을 검사합니다.
 ZIP의 `MANIFEST.json`과 옆 `.sha256` 파일로 전달 무결성을 확인할 수 있습니다.
 

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import unittest
 from unittest.mock import patch
+from offline_network import offline_network
 
 
 def main():
@@ -13,9 +14,7 @@ def main():
     args = parser.parse_args()
     with patch.dict(os.environ, {"LANGSMITH_TRACING":"false", "LANGCHAIN_TRACING_V2":"false"}), \
          patch("dotenv.load_dotenv", return_value=False), \
-         patch("socket.socket.connect", side_effect=AssertionError("Offline checks forbid network access")), \
-         patch("socket.socket.connect_ex", side_effect=AssertionError("Offline checks forbid network access")), \
-         patch("socket.create_connection", side_effect=AssertionError("Offline checks forbid network access")):
+         offline_network():
         suite = unittest.defaultTestLoader.loadTestsFromNames(["verify_adc_auth", "test_embedding_cache", "test_student_release"])
         result = unittest.TextTestRunner(verbosity=2).run(suite)
     if args.report:

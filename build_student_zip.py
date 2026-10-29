@@ -12,7 +12,7 @@ FILES = [
     ".env.example", ".gitignore", "app_rag.py", "rag_service.py", "runtime_config.py",
     "rag_step_by_step.py", "sqlite_vector_store.py", "embedding_cache.py",
     "gemini_pdf_loader.py", "gemini_quota_debugger.py", "cost_calculator.py",
-    "rag_experiment_logger.py", "check_setup.py", "run_offline_checks.py",
+    "rag_experiment_logger.py", "check_setup.py", "run_offline_checks.py", "offline_network.py",
     "verify_adc_auth.py", "test_embedding_cache.py", "test_student_release.py",
     "build_student_zip.py", "static/rag_dashboard.html", "pdf/README.txt",
     "docs/INSTALL_MACOS.txt", "docs/INSTALL_LINUX.txt", "docs/INSTALL_WINDOWS.txt",

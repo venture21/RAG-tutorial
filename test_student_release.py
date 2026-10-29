@@ -2,11 +2,13 @@
 import io
 import json
 import os
+import socket
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
+from offline_network import offline_network
 
 with patch("dotenv.load_dotenv", return_value=False):
     import rag_service
@@ -52,6 +54,28 @@ class FakeEmbeddings(Embeddings):
         return [0.0, 1.0] + [0.0] * (self.dimension - 2)
 
 
+class OfflineNetworkTests(unittest.TestCase):
+    def test_socketpair_bootstrap_works_with_guard(self):
+        with offline_network():
+            left, right = socket.socketpair()
+            with left, right:
+                left.settimeout(2)
+                right.settimeout(2)
+                left.sendall(b"offline")
+                self.assertEqual(right.recv(7), b"offline")
+
+    def test_direct_loopback_and_external_connections_remain_blocked(self):
+        with offline_network():
+            for address in [("127.0.0.1", 9), ("192.0.2.1", 443)]:
+                with self.subTest(address=address):
+                    with self.assertRaisesRegex(AssertionError, "forbid network"):
+                        socket.create_connection(address)
+                    with socket.socket() as connection:
+                        for connect in (connection.connect, connection.connect_ex):
+                            with self.assertRaisesRegex(AssertionError, "forbid network"):
+                                connect(address)
+
+
 class StudentReleaseTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -61,8 +85,7 @@ class StudentReleaseTests(unittest.TestCase):
         self.pdf_dir.mkdir()
         self.enterContext(patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT":"offline-project", "GOOGLE_CLOUD_LOCATION":"global", "LANGSMITH_TRACING":"false", "LANGCHAIN_TRACING_V2":"false"}, clear=True))
         self.adc = self.enterContext(patch("google.auth.default", side_effect=AssertionError("Unexpected ADC access")))
-        for target in ("socket.socket.connect", "socket.socket.connect_ex", "socket.create_connection"):
-            self.enterContext(patch(target, side_effect=AssertionError("Network forbidden")))
+        self.enterContext(offline_network())
         self.service = rag_service.RAGService(data_dir=self.root / "data", allowed_pdf_dirs=[self.pdf_dir, self.root / "data/uploads"])
         self.emb = FakeEmbeddings()
         self.service.get_embedder = Mock(return_value=self.emb)
