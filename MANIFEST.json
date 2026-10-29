@@ -1,0 +1,184 @@
+{
+  "release": "1.2.0",
+  "date": "2026-10-29",
+  "root": "rag-student-studio",
+  "pdf_count": 0,
+  "excluded": "Actual environment files, credentials, PDFs, databases, caches, logs, uploads, virtual environments, notebooks, screenshots and historical evaluation data",
+  "files": [
+    {
+      "path": ".env.example",
+      "bytes": 318,
+      "sha256": "5e7da91aece311de0ac042d5c631db1329ffddb624acf202a748d3525eb6d318"
+    },
+    {
+      "path": ".github/workflows/offline-checks.yml",
+      "bytes": 1017,
+      "sha256": "b81aee743a15a5438bb7e9180390f22ff257d829f04b3033959cc6aaaf9c4aa7"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 896,
+      "sha256": "d11c368305979dc16bcb974bcd993c0fac134b7aa70ed95ebf377a0b9964981a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4444,
+      "sha256": "e7b5e601a22a4780f65acc6492145383ffff90c3dd72f8dc1d943ec8339699ba"
+    },
+    {
+      "path": "RELEASE_NOTES.txt",
+      "bytes": 4999,
+      "sha256": "6c2a877cdb6e9d3455484dc4c84869936f4ea1f27cdeb8459e0909481dd9e923"
+    },
+    {
+      "path": "app_rag.py",
+      "bytes": 23532,
+      "sha256": "93554f10ee44a9171e50489f2e2d18f202387a40e776096f1f798ce263d4e861"
+    },
+    {
+      "path": "build_student_zip.py",
+      "bytes": 4857,
+      "sha256": "860f28da27bea0b597788934a1b905cbe7ca16cac98fb8c1457fd79adc837649"
+    },
+    {
+      "path": "check_setup.py",
+      "bytes": 2261,
+      "sha256": "c07d6d40b10e5c28b48ea12d029049f7a4a6a34523276a8a5e46315a0c2ccb32"
+    },
+    {
+      "path": "cost_calculator.py",
+      "bytes": 24955,
+      "sha256": "75da819091fa5d9c0b1ad4128554397a9103cde27e5cee3e30728843b8fd920f"
+    },
+    {
+      "path": "docs/GITHUB.txt",
+      "bytes": 1737,
+      "sha256": "a272b50d79b3d235156e5b96538a0ef1cd87aa57a32087d4d7bb2625410eb9be"
+    },
+    {
+      "path": "docs/INSTALL_LINUX.txt",
+      "bytes": 5472,
+      "sha256": "e580330fd2b76be8c001975c7dec1ecaccf4b8f01889c3eee0c0fca64254b808"
+    },
+    {
+      "path": "docs/INSTALL_MACOS.txt",
+      "bytes": 5267,
+      "sha256": "30dbbac41f2cd6ae245d732d1678e8499465ae2e4497f72976b9f7aec21183d3"
+    },
+    {
+      "path": "docs/INSTALL_WINDOWS.txt",
+      "bytes": 5862,
+      "sha256": "e774302bfdf3ad465c7ba1752624663977f3b47e02a56c2d551efb38a2a9e5e8"
+    },
+    {
+      "path": "embedding_cache.py",
+      "bytes": 18002,
+      "sha256": "4e23320e479e5d03112c1897ea44c5f1f909c78835286e3ee457ee27b9a1d4fc"
+    },
+    {
+      "path": "gemini_pdf_loader.py",
+      "bytes": 12527,
+      "sha256": "e78332c93577afc5ea0ea739a5e56a4a37646ba46a823467c5262ca4f5ae348b"
+    },
+    {
+      "path": "gemini_quota_debugger.py",
+      "bytes": 10690,
+      "sha256": "022696ca51ff5947ed662b64028ff78584b403197ef36825c5bec7431d813025"
+    },
+    {
+      "path": "pdf/README.txt",
+      "bytes": 116,
+      "sha256": "972fb295523bef66dde5f63265830145e72f9617bc2a2c84266f2d81e3ecc0fa"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 700,
+      "sha256": "1160062e68563e54f1dfe8f444bb8cf81f664be81cd41b1096c939542f1c374e"
+    },
+    {
+      "path": "rag_experiment_logger.py",
+      "bytes": 27288,
+      "sha256": "c472c1b599cf4f909bb1a2ca692c842323a3491617784c759a2c1de23e1ae87c"
+    },
+    {
+      "path": "rag_service.py",
+      "bytes": 51220,
+      "sha256": "33ca198a0da28f68fdb420a19bbcd66bcdf358550ce6f43f1f503fb987249abe"
+    },
+    {
+      "path": "rag_step_by_step.py",
+      "bytes": 2661,
+      "sha256": "82b9b4313b54652a03aff68be7f22846f1df80be7f2c508643e79b5f66740a47"
+    },
+    {
+      "path": "ref_code/README.txt",
+      "bytes": 1170,
+      "sha256": "fee4357a0a067de9eb043399efd9a569a4d702a3437beba242121bee64b0bb47"
+    },
+    {
+      "path": "ref_code/claude_haiku_chat.py",
+      "bytes": 5038,
+      "sha256": "28ccf3d5d5f00f3b87b456b3197b41fcafb5c2aa5724a5ea6cf361c210e62635"
+    },
+    {
+      "path": "ref_code/deepseek_gcp_chat.py",
+      "bytes": 5376,
+      "sha256": "37b4f5ebe19ffb3ab63926c5958cd49b5efd8083cd584398fa4dd8dce92bee56"
+    },
+    {
+      "path": "ref_code/gemini_flash_lite_chat.py",
+      "bytes": 4951,
+      "sha256": "d7a59f0a65050e0d67d99f0f3588f13b3d2fba62e42f89a1b443e083741d4356"
+    },
+    {
+      "path": "ref_code/gemma4_gcp_chat.py",
+      "bytes": 5566,
+      "sha256": "568e57cbceed8a393415bc9c5782aa0727ffd76102559b152d73815c7530bfd6"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 86736,
+      "sha256": "7896084e1fa1a7a56a6e6514aae5f919eda422f35e56c4b9ce7d125cd8ed9046"
+    },
+    {
+      "path": "run_offline_checks.py",
+      "bytes": 1422,
+      "sha256": "98688044b1cbb181d770ac0f617e91766f878dc2df1610f75f9cb86453de20d2"
+    },
+    {
+      "path": "runtime_config.py",
+      "bytes": 343,
+      "sha256": "27039dd40be724e943c84480a74b5594d5ae343c74ee7cea352eb4e6e0f407f7"
+    },
+    {
+      "path": "sqlite_vector_store.py",
+      "bytes": 22068,
+      "sha256": "c03f2ff5d51b9573882a02318e40a153275bc6135916c7e4fe90cd1732c4b812"
+    },
+    {
+      "path": "static/rag_dashboard.html",
+      "bytes": 142094,
+      "sha256": "8281f9dfef7ac7b7f7deb538576921b6bba784641c2fcb0c24fbe4bd40852cf5"
+    },
+    {
+      "path": "test_embedding_cache.py",
+      "bytes": 7163,
+      "sha256": "ad215b6d16bfcdd26407b8422240916539447eb51d1a6ae0a8eea1f041fa1f5c"
+    },
+    {
+      "path": "test_student_release.py",
+      "bytes": 13671,
+      "sha256": "d4cb7ee491043abd1e007e48614771600396275db00de126c5686f02124b35ae"
+    },
+    {
+      "path": "uv.lock",
+      "bytes": 318736,
+      "sha256": "afc16d5df788de53eef827d82d078327ef8f8fbb26d3f30e43654152a6c40afe"
+    },
+    {
+      "path": "verify_adc_auth.py",
+      "bytes": 8416,
+      "sha256": "6761de3ee54c06a973fd523872982a30e8921d4adf014693793082084ad6b3dd"
+    }
+  ]
+}

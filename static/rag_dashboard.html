@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LangChain RAG Step-by-Step Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --bg-subtle: #334155;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-a: #10b981; /* Green for Part A */
+      --accent-a-bg: rgba(16, 185, 129, 0.12);
+      --accent-b: #f59e0b; /* Yellow/Amber for Part B */
+      --accent-b-bg: rgba(245, 158, 11, 0.12);
+      --accent-blue: #38bdf8;
+      --accent-blue-bg: rgba(56, 189, 248, 0.12);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      /* PC 실습 화면: 설정 패널과 2열 단계 카드를 함께 유지합니다. */
+      min-width: 1280px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-inner {
+      width: 100%;
+      max-width: 1632px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.75rem 1rem;
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+    }
+    .logo-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      word-break: keep-all;
+    }
+    .status-badges {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .header-actions .btn {
+      width: auto;
+      min-height: 34px;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .header-actions .btn-primary {
+      border-radius: 9999px;
+    }
+    .pill {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 34px;
+      max-width: 100%;
+      flex: 0 1 auto;
+      white-space: nowrap;
+      line-height: 1.5;
+    }
+    .pill > span, .pill > button {
+      flex-shrink: 0;
+    }
+    .pill strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #authDesc {
+      min-width: 0;
+      flex-shrink: 1;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1680px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Left Sidebar: Settings */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #e2e8f0;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .range-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      width: 48px;
+      text-align: right;
+    }
+
+    select, input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: #38bdf8;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled {
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #f1f5f9;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 0.4rem 0.6rem;
+    }
+    .btn-outline:hover {
+      background: var(--bg-subtle);
+      color: #fff;
+    }
+    .btn-reset-compact {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: auto !important;
+      max-width: fit-content !important;
+      flex: 0 0 auto !important;
+      padding: 0.32rem 0.8rem !important;
+      font-size: 0.75rem !important;
+      font-weight: 600 !important;
+      color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.08) !important;
+      border: 1px solid rgba(239, 68, 68, 0.4) !important;
+      border-radius: var(--radius-sm) !important;
+      cursor: pointer !important;
+      white-space: nowrap !important;
+      transition: all 0.2s ease !important;
+      box-shadow: none !important;
+    }
+    .btn-reset-compact:hover {
+      background: rgba(239, 68, 68, 0.2) !important;
+      border-color: rgba(239, 68, 68, 0.8) !important;
+      color: #fca5a5 !important;
+    }
+
+    /* Page Navigation Toolbar */
+    .page-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      background: #0f172a;
+      padding: 0.45rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid #1e293b;
+      flex-wrap: wrap;
+    }
+    .page-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      min-width: 0;
+      max-width: 100%;
+      flex: 1 1 350px;
+    }
+    .page-nav-group > span, .btn-page-nav {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .page-toolbar .btn {
+      width: auto;
+      white-space: nowrap;
+    }
+    .btn-page-nav {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-page-nav:hover:not(:disabled) {
+      background: #334155;
+      border-color: #475569;
+    }
+    .btn-page-nav:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .page-select-sm {
+      width: auto;
+      min-width: 0;
+      max-width: 100%;
+      flex: 0 1 180px;
+      background: #0b1120;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Right Section: Content Panels */
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      min-width: 0;
+    }
+
+    /* Section Banner */
+    .section-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.9rem;
+      gap: 0.5rem 1rem;
+      flex-wrap: wrap;
+    }
+    .section-banner-row, .section-banner-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+    }
+    .section-banner.part-a {
+      background: var(--accent-a-bg);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .section-banner.part-b {
+      background: var(--accent-b-bg);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+
+    /* Grid for Step Cards */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+    .step-card.part-a-card {
+      border-top: 3px solid var(--accent-a);
+    }
+    .step-card.part-b-card {
+      border-top: 3px solid var(--accent-b);
+    }
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .step-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+    .part-a-card .step-badge {
+      background: var(--accent-a-bg);
+      color: #34d399;
+    }
+    .part-b-card .step-badge {
+      background: var(--accent-b-bg);
+      color: #fbbf24;
+    }
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      word-break: keep-all;
+    }
+    .step-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Indexing Progress Bar & Step Chips */
+    .index-progress-container {
+      margin-top: 0.85rem;
+      padding: 0.85rem;
+      background: #090e1a;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .progress-step-chips {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.2rem;
+    }
+    .step-chip {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .step-chip.active {
+      background: rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+    .step-chip.completed {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+    .step-arrow {
+      font-size: 0.72rem;
+      color: #475569;
+    }
+    .progress-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .progress-message {
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .percent-badge {
+      font-size: 0.98rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #38bdf8;
+      min-width: 46px;
+      text-align: right;
+    }
+    .progress-track {
+      width: 100%;
+      height: 9px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366f1 0%, #38bdf8 50%, #10b981 100%);
+      background-size: 200% 100%;
+      border-radius: 9999px;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      animation: progressShimmer 2s infinite linear;
+    }
+    @keyframes progressShimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    .progress-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+    }
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      gap: 0.5rem 1rem;
+      flex-wrap: wrap;
+    }
+    .meta-val {
+      font-weight: 600;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .code-preview {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      max-height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    /* Q&A Interactive Box */
+    .qa-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .input-wrapper {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .input-wrapper input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+    }
+    .input-wrapper .btn {
+      width: auto;
+      flex-shrink: 0;
+      white-space: nowrap;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .sample-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+    .sample-q-btn {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sample-q-btn:hover {
+      color: #fbbf24;
+      border-color: #f59e0b;
+    }
+
+    /* Final Answer Card */
+    .answer-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 1px solid #38bdf8;
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      position: relative;
+    }
+    .answer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .answer-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .answer-body {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #f8fafc;
+      white-space: pre-wrap;
+    }
+    .citations-bar {
+      margin-top: 1rem;
+      padding-top: 0.65rem;
+      border-top: 1px dashed var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .cite-tag {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+    }
+
+    /* Modal for SQLite Inspection */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 720px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Cost Dashboard Styles */
+    .cost-modal-box {
+      max-width: 1040px;
+      width: 95%;
+      max-height: 90vh;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      background: #0f172a;
+    }
+    .cost-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 768px) {
+      .cost-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .cost-metric-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .cost-metric-card .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .cost-metric-card .val {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .cost-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      padding-bottom: 0.25rem;
+      flex-wrap: wrap;
+    }
+    .cost-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cost-tab-btn:hover {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .cost-tab-btn.active {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .cost-tab-pane {
+      display: none;
+    }
+    .cost-tab-pane.active {
+      display: block;
+    }
+    .cost-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .cost-table th, .cost-table td {
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .cost-table th {
+      background: rgba(15, 23, 42, 0.9);
+      color: #cbd5e1;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+    .cost-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .cost-bar-container {
+      margin-bottom: 0.75rem;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+    }
+    .cost-bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
+    .cost-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 767px) {
+      .modal-header { align-items: flex-start; gap: 0.75rem; flex-wrap: wrap; }
+      .modal-header > div:first-child { min-width: 0; flex: 1 1 220px; }
+      .modal-body { padding: 1rem; }
+      .cost-modal-box h3 { word-break: keep-all; }
+      .cost-metric-card { padding: 0.75rem; min-width: 0; }
+      .cost-metric-card .val { font-size: 1rem; white-space: nowrap; }
+      .cost-tabs { gap: 0.25rem; }
+      .cost-tab-btn { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+    <div class="logo-group">
+      <span class="logo-badge">LangChain RAG</span>
+      <span class="logo-title">Step-by-Step Interactive Studio</span>
+    </div>
+    <div class="header-actions">
+      <button id="btnOpenCostModal" type="button" class="btn btn-primary">
+        <span>💰</span>
+        <span>토큰 & 과금 대시보드</span>
+      </button>
+      <a href="/docs" target="_blank" rel="noopener" class="btn btn-outline">API Docs</a>
+    </div>
+    <div class="status-badges">
+      <div class="pill active" id="authPill">
+        <span class="pill-dot"></span>
+        <span id="authDesc">Vertex AI ADC</span>
+      </div>
+      <div class="pill">
+        <span>LLM:</span>
+        <strong id="currentLlmTag" style="color: #fbbf24;">gemini-3.8-flash</strong>
+      </div>
+      <div class="pill">
+        <span>Vector DB:</span>
+        <strong style="color: #38bdf8;">SQLite</strong>
+      </div>
+      <div class="pill" id="headerCostPill" title="현재 세션 누적 과금액 (클릭 시 대시보드 열기)" style="cursor: pointer; display: flex; align-items: center; gap: 0.35rem;" onclick="openCostModal('tracker')">
+        <span>세션 예상:</span>
+        <strong id="headerSessionCost" style="color: #34d399;">$0.0000</strong>
+        <span id="headerSessionCostKrw" style="font-size: 0.72rem; color: #94a3b8;">(약 0원)</span>
+        <button type="button" onclick="event.stopPropagation(); resetCostStats();" title="누적 과금 카운터 초기화" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; border-radius: 4px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer; margin-left: 3px; font-weight: 600;">리셋</button>
+      </div>
+    </div>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main>
+    <!-- Left Sidebar: Settings -->
+    <aside class="sidebar">
+      
+      <!-- 1. Document Selection & Upload -->
+      <div class="card">
+        <div class="card-title">
+          <span>📄 1. 문서 선택 및 업로드</span>
+        </div>
+        <div class="form-group">
+          <label for="pdfSelect">서버 내 PDF 선택</label>
+          <select id="pdfSelect"></select>
+        </div>
+        <div class="form-group">
+          <label for="pdfUpload">또는 새 PDF 업로드</label>
+          <input type="file" id="pdfUpload" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label for="ocrModeSelect">텍스트 추출 모드 (스캔본 OCR)</label>
+          <select id="ocrModeSelect">
+            <option value="auto" selected>자동 감지 (스캔본 시 Gemini 3.8 Flash OCR 전환 - 추천)</option>
+            <option value="gemini_ocr">Gemini 3.8 Flash OCR (이미지 묘사 제외 / 텍스트만 전사)</option>
+            <option value="pypdf">일반 디지털 텍스트 추출 (PyPDF)</option>
+          </select>
+        </div>
+
+        <!-- Gemini OCR 프롬프트 직접 수정 아코디언 -->
+        <div class="ocr-prompt-accordion" style="margin-top: 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: rgba(15, 23, 42, 0.55); overflow: hidden;">
+          <button type="button" id="toggleOcrPromptBtn" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: var(--bg-subtle); border: none; color: #38bdf8; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: left;">
+            <span style="display: flex; align-items: center; gap: 0.4rem;">
+              <span>✏️</span>
+              <span>Gemini OCR 프롬프트 직접 수정</span>
+            </span>
+            <span id="ocrPromptChevron" style="font-size: 0.75rem; transition: transform 0.2s;">▼</span>
+          </button>
+          <div id="ocrPromptCollapse" style="display: none; padding: 0.85rem; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.45;">
+              Gemini 3.8 Flash가 PDF를 읽을 때 사용하는 <strong>시스템 지침</strong>과 <strong>페이지별 프롬프트</strong>를 브라우저에서 직접 수정할 수 있습니다. (수정 내용은 브라우저에 자동 저장됩니다)
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label for="ocrSystemInstructionInput" style="font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                <span style="font-weight: 600;">1. 시스템 지침 (System Instruction)</span>
+                <span style="color: #64748b; font-size: 0.7rem;">OCR 엔진 행동 제약</span>
+              </label>
+              <textarea id="ocrSystemInstructionInput" rows="7" style="width: 100%; background: #0b1120; border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: #f8fafc; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; padding: 0.5rem; resize: vertical; line-height: 1.45;"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label for="ocrPromptTemplateInput" style="font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                <span style="font-weight: 600;">2. 페이지 프롬프트 ({page_num} 치환)</span>
+                <span style="color: #64748b; font-size: 0.7rem;">페이지 전사 지시문</span>
+              </label>
+              <textarea id="ocrPromptTemplateInput" rows="3" style="width: 100%; background: #0b1120; border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: #f8fafc; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; padding: 0.5rem; resize: vertical; line-height: 1.45;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <button type="button" id="btnResetOcrPrompt" style="padding: 0.35rem 0.65rem; font-size: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: #94a3b8; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;">
+                🔄 기본 프롬프트로 초기화
+              </button>
+              <span id="ocrPromptSavedNotice" style="font-size: 0.7rem; color: #34d399; display: none;">✓ 브라우저 저장됨</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Hyperparameters -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚙️ 2. 하이퍼파라미터 설정</span>
+        </div>
+        <div class="form-group">
+          <label>청크 크기 (chunk_size: 글자 수)</label>
+          <div class="range-wrap">
+            <input type="range" id="chunkSizeRange" min="200" max="2000" step="50" value="800">
+            <span class="range-val" id="chunkSizeVal">800</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>청크 오버랩 (chunk_overlap: 글자 수)</label>
+          <div class="range-wrap">
+            <input type="range" id="chunkOverlapRange" min="0" max="500" step="10" value="150">
+            <span class="range-val" id="chunkOverlapVal">150</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>검색 청크 수 (top_k: 최대 50개)</label>
+          <div class="range-wrap">
+            <input type="range" id="topKRange" min="1" max="50" step="1" value="10">
+            <span class="range-val" id="topKVal">10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Model Selection -->
+      <div class="card">
+        <div class="card-title">
+          <span>🧠 3. 모델 설정</span>
+        </div>
+        <div class="form-group">
+          <label for="embeddingModelSelect">임베딩 모델</label>
+          <select id="embeddingModelSelect">
+            <option value="text-embedding-004" selected>text-embedding-004 (768차원 - 추천)</option>
+            <option value="gemini-embedding-2">gemini-embedding-2 (3,072차원)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="llmModelSelect">생성 LLM</label>
+          <select id="llmModelSelect">
+            <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Vertex AI)</option>
+            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Vertex AI)</option>
+            <option value="deepseek-ai/deepseek-v4.1-flash-maas">DeepSeek V4.1 Flash (Vertex AI)</option>
+            <option value="google/gemma-4-26b-a4b-it-maas">Gemma 4 26B (Vertex AI)</option>
+            <option value="claude-haiku-5-5">Claude Haiku 5.5 (Vertex AI)</option>
+            <option value="gemma4:e2b">Gemma 4 E2B (Ollama 로컬)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 0.6rem;">
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span style="font-size: 0.78rem; color: #cbd5e1;">📁 다중 문서 누적 인덱싱 (해제 시 전체 DB 교체)</span>
+            <input type="checkbox" id="reindexCheckbox" style="width: auto; cursor: pointer;">
+          </label>
+          <span style="font-size: 0.7rem; color: #64748b; display: block; margin-top: 0.2rem;">
+            체크 시 업로드한 페이지를 갱신하고 나머지 문서를 유지합니다. 해제하면 전체 DB를 교체합니다.
+          </span>
+        </div>
+        <div class="form-group" style="margin-top: 0.6rem;">
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span style="font-size: 0.78rem; color: #cbd5e1;">⚡ 임베딩 캐시 사용 (API 비용 절감)</span>
+            <input type="checkbox" id="embeddingCacheCheckbox" checked style="width: auto; cursor: pointer;">
+          </label>
+          <span style="font-size: 0.7rem; color: #64748b; display: block; margin-top: 0.2rem;">
+            체크 시 이미 계산된 청크/질문 벡터를 로컬 DB에서 0초 즉시 재사용합니다.
+          </span>
+        </div>
+        <button class="btn btn-primary" id="btnIndex" style="margin-top: 0.5rem;">
+          <span id="indexBtnText">⚡ 인덱싱 실행 (Part A)</span>
+        </button>
+
+        <!-- Part A 인덱싱 실시간 프로그레스 바 & 퍼센트 -->
+        <div id="indexProgressContainer" class="index-progress-container" style="display: none;">
+          <div class="progress-step-chips">
+            <span class="step-chip" id="chipA1">A1 읽기</span>
+            <span class="step-arrow">›</span>
+            <span class="step-chip" id="chipA2">A2 분할</span>
+            <span class="step-arrow">›</span>
+            <span class="step-chip" id="chipA3">A3 임베딩</span>
+            <span class="step-arrow">›</span>
+            <span class="step-chip" id="chipA4">A4 저장</span>
+          </div>
+          <div class="progress-info-row">
+            <span class="progress-message" id="indexProgressMessage">인덱싱 준비 중...</span>
+            <span class="percent-badge" id="indexProgressPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="indexProgressBar" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="progress-detail-row">
+            <span id="indexProgressDetail">문서 및 모델 확인 중</span>
+            <span id="indexProgressTimer" style="font-family: monospace;">0.0s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. SQLite DB Status -->
+      <div class="card">
+        <div class="card-title">
+          <span>💾 SQLite 벡터 DB 상태</span>
+          <button class="btn btn-outline" id="btnInspectDb" style="width: auto;">레코드 검사</button>
+        </div>
+        <div class="meta-list">
+          <div class="meta-item">
+            <span>테이블명:</span>
+            <span class="meta-val" id="dbTableName">langchain_documents</span>
+          </div>
+          <div class="meta-item">
+            <span>저장된 총 청크 수:</span>
+            <span class="meta-val" id="dbTotalRecords">-</span>
+          </div>
+          <div class="meta-item">
+            <span>DB 파일 크기:</span>
+            <span class="meta-val" id="dbFileSize">-</span>
+          </div>
+          <div class="meta-item">
+            <span>벡터 차원:</span>
+            <span class="meta-val" id="dbVectorDim">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Embedding Cache Status -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚡ 임베딩 캐시 상태</span>
+          <button class="btn btn-outline" id="btnClearEmbeddingCache" style="width: auto; font-size: 0.72rem; padding: 0.25rem 0.5rem;">캐시 비우기</button>
+        </div>
+        <div class="meta-list">
+          <div class="meta-item">
+            <span>저장된 총 벡터 수:</span>
+            <span class="meta-val" id="cacheTotalEntries">-</span>
+          </div>
+          <div class="meta-item">
+            <span>누적 재사용(적중):</span>
+            <span class="meta-val" id="cacheLifetimeHits">-</span>
+          </div>
+          <div class="meta-item">
+            <span>세션 적중률:</span>
+            <span class="meta-val" id="cacheSessionHitRate">-</span>
+          </div>
+          <div class="meta-item">
+            <span>캐시 파일 크기:</span>
+            <span class="meta-val" id="cacheFileSize">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Real-time Session Cost Card -->
+      <div class="card" style="border-left: 3px solid #10b981;">
+        <div class="card-title">
+          <span style="color: #34d399;">💰 세션 과금 & 토큰 현황</span>
+          <button type="button" class="btn btn-outline" id="btnResetCostInCard" onclick="resetCostStats()" style="width: auto; flex-shrink: 0; font-size: 0.72rem; padding: 0.2rem 0.5rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <span>🔄</span><span>리셋</span>
+          </button>
+        </div>
+        <div class="meta-list">
+          <div class="meta-item">
+            <span>누적 질의 수:</span>
+            <span class="meta-val" id="cardTotalQueries">0회</span>
+          </div>
+          <div class="meta-item">
+            <span>누적 소모 토큰:</span>
+            <span class="meta-val" id="cardTotalTokens">0 토큰</span>
+          </div>
+          <div class="meta-item">
+            <span>누적 과금 (USD):</span>
+            <span class="meta-val" id="cardTotalCostUsd" style="color: #34d399; font-weight: 700;">$0.0000</span>
+          </div>
+          <div class="meta-item">
+            <span>누적 과금 (원화):</span>
+            <span class="meta-val" id="cardTotalCostKrw" style="color: #cbd5e1;">약 0원</span>
+          </div>
+        </div>
+        <button type="button" id="btnOpenCostModalCard" class="btn btn-outline" style="width: 100%; margin-top: 0.65rem; font-size: 0.76rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+          📊 모델별 단가표 및 비교 시뮬레이터 열기
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Right Content: Step-by-Step Visualization -->
+    <section class="content-area">
+      
+      <!-- Part A Header -->
+      <div class="section-banner part-a" style="flex-direction: column; align-items: stretch; gap: 0.4rem;">
+        <div class="section-banner-row">
+          <span>Part A. 미리 준비하기 (인덱싱 단계 · 자료 등록/변경)</span>
+          <div class="section-banner-detail">
+            <span id="partABannerPercent" style="display: none; font-size: 0.82rem; font-weight: 700; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">0%</span>
+            <span style="font-size: 0.78rem; font-weight: normal;">PDF → 청크 → 임베딩 → SQLite</span>
+          </div>
+        </div>
+        <div id="partAGlobalProgressTrack" style="display: none; width: 100%; height: 3px; background: rgba(255,255,255,0.15); border-radius: 9999px; overflow: hidden;">
+          <div id="partAGlobalProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.35s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Part A Step Cards (A1, A2, A3, A4) -->
+      <div class="steps-grid">
+        
+        <!-- Step A1 -->
+        <div class="step-card part-a-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step A1</span>
+              <div class="step-title">문서 읽기 (PDF → 텍스트 / Gemini OCR)</div>
+            </div>
+            <span class="cite-tag" id="a1LoaderBadge" style="display: none; background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4);">Gemini OCR</span>
+          </div>
+          <div class="step-desc">PDF 파일을 로드하여 텍스트 및 페이지 메타데이터를 추출합니다. (스캔본은 Gemini 3.8 Flash 비전 OCR로 텍스트만 정밀 전사)</div>
+          <div class="meta-list" id="a1Meta">
+            <div class="meta-item"><span>로더 방식:</span><span class="meta-val" id="a1LoaderType">-</span></div>
+            <div class="meta-item"><span>파일명:</span><span class="meta-val" id="a1FileName">-</span></div>
+            <div class="meta-item"><span>총 페이지:</span><span class="meta-val" id="a1TotalPages">-</span></div>
+            <div class="meta-item"><span>파일 크기:</span><span class="meta-val" id="a1FileSize">-</span></div>
+          </div>
+          <div id="a1OcrNotice" style="display: none; font-size: 0.78rem; color: #c084fc; margin-bottom: 0.5rem; background: rgba(168,85,247,0.12); padding: 6px 10px; border-radius: 6px; border-left: 3px solid #a855f7;"></div>
+
+          <!-- 페이지 선택 및 열람 툴바 -->
+          <div class="page-toolbar">
+            <div class="page-nav-group">
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">페이지:</span>
+              <button type="button" class="btn-page-nav" id="a1PrevBtn" title="이전 페이지" disabled>◀</button>
+              <select id="a1PageSelect" class="page-select-sm" title="확인할 페이지 선택">
+                <option value="1">1쪽</option>
+              </select>
+              <button type="button" class="btn-page-nav" id="a1NextBtn" title="다음 페이지" disabled>▶</button>
+              <span id="a1PageIndicator" style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; margin-left: 0.2rem;">- / - 쪽</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <button type="button" class="btn btn-outline" id="a1FetchPagesBtn" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" title="인덱싱 없이 선택한 PDF의 페이지를 즉시 읽고 확인합니다.">📖 바로 읽기</button>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); padding: 0 0.2rem;">
+            <span>페이지 본문 글자 수: <strong id="a1PageCharCount" style="color: #34d399;">-</strong></span>
+            <span id="a1PageStatus" style="color: #c084fc;"></span>
+          </div>
+
+          <div class="code-preview" id="a1Preview" style="max-height: 240px; min-height: 120px;">// 인덱싱 실행 또는 [📖 바로 읽기] 클릭 시 지정한 페이지 텍스트가 표시됩니다.</div>
+        </div>
+
+        <!-- Step A2 -->
+        <div class="step-card part-a-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step A2</span>
+              <div class="step-title">청크로 나누기 (작은 원문 조각)</div>
+            </div>
+            <span class="cite-tag" id="a2TotalBadge" style="display: none; background: rgba(16, 185, 129, 0.2); color: #34d399;">0개 청크</span>
+          </div>
+          <div class="step-desc">RecursiveTextSplitter로 문맥을 보존하며 최적 크기로 분할합니다.</div>
+          <div class="meta-list" id="a2Meta">
+            <div class="meta-item"><span>생성된 청크 수:</span><span class="meta-val" id="a2TotalChunks">-</span></div>
+            <div class="meta-item"><span>청크 크기 분포:</span><span class="meta-val" id="a2Dist">-</span></div>
+            <div class="meta-item"><span>기존 중복 분석:</span><span class="meta-val" id="a2DupStatus" style="color: #38bdf8;">-</span></div>
+          </div>
+          <div id="a2SubsetAlert" style="display: none; font-size: 0.78rem; padding: 6px 10px; border-radius: 6px; margin-bottom: 0.5rem; line-height: 1.45;"></div>
+
+          <!-- A2 청크 10개 단위 페이징 툴바 -->
+          <div class="page-toolbar" id="a2Toolbar" style="display: none; margin-top: 0.25rem;">
+            <div class="page-nav-group">
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">페이지:</span>
+              <button type="button" class="btn-page-nav" id="a2Prev10Btn" title="이전 10페이지 점프">⏮</button>
+              <button type="button" class="btn-page-nav" id="a2PrevBtn" title="이전 페이지">◀</button>
+              <select id="a2PageSelect" class="page-select-sm" title="확인할 청크 페이지 선택"></select>
+              <button type="button" class="btn-page-nav" id="a2NextBtn" title="다음 페이지">▶</button>
+              <button type="button" class="btn-page-nav" id="a2Next10Btn" title="다음 10페이지 점프">⏭</button>
+              <span id="a2PageIndicator" style="font-size: 0.78rem; color: #34d399; font-weight: 600; margin-left: 0.2rem;">-</span>
+            </div>
+            <span id="a2ItemRange" style="font-size: 0.75rem; color: var(--text-muted);">10개씩 보기</span>
+          </div>
+
+          <div class="code-preview" id="a2Preview" style="max-height: 280px; min-height: 140px;">// 인덱싱 완료 시 10개 단위로 청크가 표시됩니다.</div>
+        </div>
+
+        <!-- Step A3 -->
+        <div class="step-card part-a-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step A3</span>
+              <div class="step-title">임베딩하기 (청크 → 숫자 배열)</div>
+            </div>
+          </div>
+          <div class="step-desc">텍스트 청크를 고차원 시맨틱 벡터로 변환합니다.</div>
+          <div class="meta-list" id="a3Meta">
+            <div class="meta-item"><span>사용 모델:</span><span class="meta-val" id="a3Model">-</span></div>
+            <div class="meta-item"><span>벡터 차원 수:</span><span class="meta-val" id="a3Dim">-</span></div>
+            <div class="meta-item"><span>소요 시간:</span><span class="meta-val" id="a3Elapsed">-</span></div>
+            <div class="meta-item"><span>임베딩 캐시:</span><span class="meta-val" id="a3CacheStats">-</span></div>
+            <div class="meta-item"><span>임베딩 토큰 / 과금:</span><span class="meta-val" id="a3Cost" style="color: #34d399;">-</span></div>
+          </div>
+          <div class="code-preview" id="a3Preview">// 생성된 임베딩 벡터 수치 배열 샘플이 표시됩니다.</div>
+        </div>
+
+        <!-- Step A4 -->
+        <div class="step-card part-a-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step A4</span>
+              <div class="step-title">벡터 스토어 저장 (SQLite)</div>
+            </div>
+          </div>
+          <div class="step-desc">벡터 + 원문 + 출처 메타데이터를 SQLite DB에 영구 커밋합니다.</div>
+          <div class="meta-list" id="a4Meta">
+            <div class="meta-item"><span>저장 테이블:</span><span class="meta-val" id="a4Table">-</span></div>
+            <div class="meta-item"><span>커밋된 행 수:</span><span class="meta-val" id="a4Records">-</span></div>
+          </div>
+          <div class="code-preview" id="a4Preview">// SQLite에 실제 저장된 1건의 로우 구조가 표시됩니다.</div>
+        </div>
+
+      </div>
+
+      <!-- Part B Header -->
+      <div class="section-banner part-b">
+        <span>Part B. 질문에 답하기 (런타임 질의응답 · 런타임)</span>
+        <span style="font-size: 0.78rem; font-weight: normal;">질문 임베딩 → 코사인 검색 → 프롬프트 조립 → Gemini 답변</span>
+      </div>
+
+      <!-- Q&A Box -->
+      <div class="qa-box">
+        <div class="sample-questions">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">추천 질문:</span>
+          <button class="sample-q-btn" onclick="setQuery('OpenRouter API 키가 왜 필요한지 요약해줘.')">OpenRouter API 키가 왜 필요한가요?</button>
+          <button class="sample-q-btn" onclick="setQuery('에이전트 성능과 비용 최적화는 어떻게 하나요?')">성능과 비용 최적화 방법은?</button>
+          <button class="sample-q-btn" onclick="setQuery('이 문서의 핵심 요약을 3줄로 정리해줘.')">문서 핵심 3줄 요약</button>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="queryInput" placeholder="인덱싱된 문서에 대해 궁금한 점을 질문하세요..." value="OpenRouter API 키가 왜 필요한지 요약해줘.">
+          <button class="btn" id="btnAsk">
+            <span id="askBtnText">질문 전송 (Ask)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Part B Step Cards (B1, B2, B3, B4) -->
+      <div class="steps-grid">
+        
+        <!-- Step B1 -->
+        <div class="step-card part-b-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step B1</span>
+              <div class="step-title">질문 입력 (질문도 임베딩)</div>
+            </div>
+          </div>
+          <div class="step-desc">질문 텍스트를 동일한 모델로 고차원 질문 벡터로 변환합니다.</div>
+          <div class="meta-list" id="b1Meta">
+            <div class="meta-item"><span>질문 벡터 차원:</span><span class="meta-val" id="b1Dim">-</span></div>
+            <div class="meta-item"><span>임베딩 소요 시간:</span><span class="meta-val" id="b1Elapsed">-</span></div>
+            <div class="meta-item"><span>캐시 적중 여부:</span><span class="meta-val" id="b1Cache">-</span></div>
+            <div class="meta-item"><span>질문 임베딩 과금:</span><span class="meta-val" id="b1Cost" style="color: #34d399;">-</span></div>
+          </div>
+          <div class="code-preview" id="b1Preview">// 질문 벡터 수치가 표시됩니다.</div>
+        </div>
+
+        <!-- Step B2 -->
+        <div class="step-card part-b-card">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step B2</span>
+              <div class="step-title">관련 청크 검색 (하이브리드 RRF)</div>
+            </div>
+            <span class="cite-tag" id="b2TotalBadge" style="display: none; background: rgba(245, 158, 11, 0.2); color: #fbbf24;">0개 청크</span>
+          </div>
+          <div class="step-desc">질문과 관련된 청크를 검색하여 10개 단위 페이지네이션으로 열람합니다.</div>
+          <div class="meta-list" id="b2Meta">
+            <div class="meta-item"><span>검색 Top-K / 총 검색결과:</span><span class="meta-val" id="b2TopK">-</span></div>
+            <div class="meta-item"><span>검색 레이턴시:</span><span class="meta-val" id="b2Elapsed">-</span></div>
+          </div>
+
+          <!-- B2 청크 10개 단위 페이징 툴바 -->
+          <div class="page-toolbar" id="b2Toolbar" style="display: none; margin-top: 0.25rem;">
+            <div class="page-nav-group">
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">페이지:</span>
+              <button type="button" class="btn-page-nav" id="b2PrevBtn" title="이전 10개">◀</button>
+              <select id="b2PageSelect" class="page-select-sm" title="확인할 페이지 구간 선택"></select>
+              <button type="button" class="btn-page-nav" id="b2NextBtn" title="다음 10개">▶</button>
+              <span id="b2PageIndicator" style="font-size: 0.78rem; color: #fbbf24; font-weight: 600; margin-left: 0.2rem;">-</span>
+            </div>
+            <span id="b2ItemRange" style="font-size: 0.75rem; color: var(--text-muted);">10개씩 보기</span>
+          </div>
+
+          <div class="code-preview" id="b2Preview" style="max-height: 280px; min-height: 140px;">// 검색된 청크의 순위, 유사도 점수, 출처가 표시됩니다.</div>
+        </div>
+
+        <!-- Step B3 (Full span) -->
+        <div class="step-card part-b-card" style="grid-column: 1 / -1;">
+          <div class="step-header">
+            <div>
+              <span class="step-badge">Step B3</span>
+              <div class="step-title">프롬프트 구성 (질문 + 원문 + 지시문)</div>
+            </div>
+            <span style="font-size: 0.75rem; color: #fbbf24;">*원래 질문도 그대로 전달합니다</span>
+          </div>
+          <div class="step-desc">검색된 원문 청크들과 지시문, 원래 질문을 합성한 완성형 프롬프트입니다.</div>
+          <div class="code-preview" id="b3Preview" style="max-height: 220px;">// LLM에 전송된 완성형 프롬프트 전문(Full Text)이 표시됩니다.</div>
+        </div>
+
+      </div>
+
+      <!-- Step B4: Final Answer -->
+      <div class="answer-card" id="answerCard" style="display: none;">
+        <div class="answer-header">
+          <div class="answer-title">
+            <span>💡 Step B4. LLM 최종 답변</span>
+            <span class="cite-tag" id="ansModelTag">gemini-3.8-flash</span>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" id="ansElapsedTag">-</span>
+        </div>
+        <div class="answer-body" id="ansBody">답변이 생성되는 중입니다...</div>
+        <div class="citations-bar">
+          <span>📚 근거 자료 출처:</span>
+          <div id="ansCitations"></div>
+        </div>
+
+        <!-- Real-time Token & Cost Bar for Current Query -->
+        <div class="cost-summary-bar" id="ansCostBar" style="display: none; margin-top: 0.85rem; padding: 0.75rem 1rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); font-size: 0.78rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 7px; border-radius: 4px; font-weight: 600;">🏷️ 소모 토큰</span>
+              <span id="ansTokenCountText" style="color: #f8fafc; font-family: 'JetBrains Mono', monospace;">입력: 0 | 출력: 0 (총 0)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 7px; border-radius: 4px; font-weight: 600;">💵 예상 과금액</span>
+              <span id="ansCostText" style="color: #34d399; font-weight: 700; font-family: 'JetBrains Mono', monospace;">$0.000000 (약 0.00원)</span>
+              <button type="button" class="btn btn-outline" onclick="openCostModal('pricing')" style="width: auto; padding: 2px 8px; font-size: 0.7rem; border-color: rgba(255,255,255,0.25); cursor: pointer;">실습용 예시 요율</button>
+              <button type="button" class="btn btn-outline" onclick="resetCostStats()" title="과금 카운터 초기화" style="width: auto; padding: 2px 8px; font-size: 0.7rem; color: #ef4444; border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;"><span>🔄</span><span>리셋</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- DB Inspect Modal -->
+  <div class="modal-overlay" id="dbModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; color: #38bdf8;">💾 SQLite DB 레코드 직접 검사</h3>
+        <button class="close-btn" onclick="toggleModal(false)">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          SQLite 데이터베이스(<code>rag_sqlite.db</code>)에 실제로 저장된 레코드 1건의 물리적 로우 데이터를 그대로 조회한 결과입니다.
+        </p>
+        <div class="code-preview" id="modalDbContent" style="max-height: 400px;">로딩 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Token & Cost Analysis Dashboard Modal -->
+  <div class="modal-overlay" id="costModal">
+    <div class="modal-box cost-modal-box">
+      <div class="modal-header" style="background: rgba(15, 23, 42, 0.95);">
+        <div>
+          <h3 style="font-size: 1.15rem; color: #34d399; display: flex; align-items: center; gap: 0.5rem;">
+            <span>💰</span>
+            <span>Vertex AI 모델별 토큰 & 과금 분석 대시보드</span>
+          </h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+            실습용 예시 요율과 추정 토큰 기반입니다. OCR 사용량도 포함하며, 재시도·실제 청구액은 Cloud Billing에서 확인하세요.
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <button type="button" class="btn-reset-compact" id="btnResetCostModalHeader" onclick="resetCostStats()">
+            <span>🔄</span><span>과금 카운터 리셋</span>
+          </button>
+          <button class="close-btn" onclick="toggleCostModal(false)">&times;</button>
+        </div>
+      </div>
+      
+      <div class="modal-body" style="padding: 1.25rem;">
+        
+        <!-- 4 Key Metric Cards -->
+        <div class="cost-metric-grid">
+          <div class="cost-metric-card" style="border-left: 3px solid #38bdf8;">
+            <span class="label"><span>🔢</span><span>세션 총 질의 횟수</span></span>
+            <span class="val" id="modalMetricQueries">0회</span>
+          </div>
+          <div class="cost-metric-card" style="border-left: 3px solid #a855f7;">
+            <span class="label"><span>🔠</span><span>누적 소모 토큰</span></span>
+            <span class="val" id="modalMetricTokens">0</span>
+          </div>
+          <div class="cost-metric-card" style="border-left: 3px solid #10b981;">
+            <span class="label"><span>💵</span><span>총 예상 과금 (USD)</span></span>
+            <span class="val" id="modalMetricUsd" style="color: #34d399;">$0.0000</span>
+          </div>
+          <div class="cost-metric-card" style="border-left: 3px solid #f59e0b;">
+            <span class="label"><span>🇰🇷</span><span>총 예상 과금 (원화)</span></span>
+            <span class="val" id="modalMetricKrw" style="color: #fbbf24;">약 0원</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="cost-tabs">
+          <button type="button" class="cost-tab-btn active" id="tabBtnTracker" onclick="switchCostTab('tracker')">
+            📈 1. 모델별 실시간 사용량
+          </button>
+          <button type="button" class="cost-tab-btn" id="tabBtnSim" onclick="switchCostTab('sim')">
+            🧮 2. 비용 비교 시뮬레이터
+          </button>
+          <button type="button" class="cost-tab-btn" id="tabBtnPricing" onclick="switchCostTab('pricing')">
+            📋 3. 실습용 예시 요율표 (Matrix)
+          </button>
+          <button type="button" class="cost-tab-btn" id="tabBtnHistory" onclick="switchCostTab('history')">
+            📜 4. 최근 질의 이력
+          </button>
+          <button type="button" class="cost-tab-btn" id="tabBtnExperiments" onclick="switchCostTab('experiments')">
+            🔬 5. RAG 실험 분석 로그
+          </button>
+        </div>
+
+        <!-- Tab 1: Real-time Model Usage Tracker -->
+        <div class="cost-tab-pane active" id="paneTracker">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; gap: 1rem; width: 100%;">
+            <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600; white-space: nowrap;">📊 모델별 소모 토큰 및 누적 과금 점유율</span>
+            <button type="button" class="btn-reset-compact" id="btnResetCostInModal" onclick="resetCostStats()" title="모든 모델의 소모 토큰 및 누적 과금 통계를 0으로 초기화">
+              <span>🔄</span><span>통계 초기화 (Reset)</span>
+            </button>
+          </div>
+          <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 1rem;">
+            <table class="cost-table">
+              <thead>
+                <tr>
+                  <th>모델명</th>
+                  <th>제공사</th>
+                  <th style="text-align: right;">질의/작업 수</th>
+                  <th style="text-align: right;">입력 토큰</th>
+                  <th style="text-align: right;">출력 토큰</th>
+                  <th style="text-align: right;">총 토큰</th>
+                  <th style="text-align: right;">누적 과금 (USD)</th>
+                  <th style="text-align: right;">누적 과금 (원화)</th>
+                </tr>
+              </thead>
+              <tbody id="modalModelTableBody">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">데이터를 불러오는 중입니다...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="modalModelBarsContainer"></div>
+        </div>
+
+        <!-- Tab 2: Cost Comparison Simulator -->
+        <div class="cost-tab-pane" id="paneSim">
+          <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #38bdf8; margin-bottom: 0.75rem;">
+              🎯 시뮬레이션 파라미터 설정 (실시간 반영)
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+              <div>
+                <label style="font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between;">
+                  <span>입력 토큰 수:</span>
+                  <span id="simInputVal" style="color: #38bdf8; font-weight: 700; font-family: monospace;">1,000</span>
+                </label>
+                <input type="range" id="simInputRange" min="100" max="30000" step="100" value="1000" style="width: 100%; margin-top: 0.35rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between;">
+                  <span>출력 토큰 수:</span>
+                  <span id="simOutputVal" style="color: #38bdf8; font-weight: 700; font-family: monospace;">300</span>
+                </label>
+                <input type="range" id="simOutputRange" min="50" max="5000" step="50" value="300" style="width: 100%; margin-top: 0.35rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between;">
+                  <span>예상 질의 횟수:</span>
+                  <span id="simCountVal" style="color: #38bdf8; font-weight: 700; font-family: monospace;">100회</span>
+                </label>
+                <input type="range" id="simCountRange" min="1" max="1000" step="1" value="100" style="width: 100%; margin-top: 0.35rem;">
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>모델별 예상 과금액 비교 (가장 경제적인 순)</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">적용 환율: 1 USD = 1,400원</span>
+          </div>
+          <div id="simComparisonResults"></div>
+        </div>
+
+        <!-- Tab 3: Official Pricing Table -->
+        <div class="cost-tab-pane" id="panePricing">
+          <div style="margin-bottom: 0.85rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="https://cloud.google.com/model-garden/pricing#cost-of-building-and-deploying-ai-models-in-agent-platform" target="_blank" class="btn btn-outline" style="text-decoration: none; font-size: 0.75rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); display: flex; align-items: center; gap: 0.35rem;">
+              <span>🌐</span><span>Google Model Garden First-Party & MaaS 실습용 예시 요율표 ↗</span>
+            </a>
+            <a href="https://cloud.google.com/model-garden/partner-models/pricing" target="_blank" class="btn btn-outline" style="text-decoration: none; font-size: 0.75rem; color: #a855f7; border-color: rgba(168, 85, 247, 0.4); display: flex; align-items: center; gap: 0.35rem;">
+              <span>🌐</span><span>Vertex AI Partner Models (Anthropic Claude) 실습용 예시 요율표 ↗</span>
+            </a>
+          </div>
+
+          <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            <table class="cost-table">
+              <thead>
+                <tr>
+                  <th>모델명</th>
+                  <th>분류</th>
+                  <th>입력 단가 (1M)</th>
+                  <th>출력 단가 (1M)</th>
+                  <th>캐시 읽기 단가 (1M)</th>
+                  <th>1K 토큰 환산 (입력/출력)</th>
+                  <th>특징 및 프로모션</th>
+                </tr>
+              </thead>
+              <tbody id="modalPricingTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">요율표를 불러오는 중입니다...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Query History Log -->
+        <div class="cost-tab-pane" id="paneHistory">
+          <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            <table class="cost-table">
+              <thead>
+                <tr>
+                  <th>시간</th>
+                  <th>모델</th>
+                  <th>질문 요약</th>
+                  <th style="text-align: right;">입력 토큰</th>
+                  <th style="text-align: right;">출력 토큰</th>
+                  <th style="text-align: right;">총 토큰</th>
+                  <th style="text-align: right;">예상 비용</th>
+                  <th style="text-align: right;">소요 시간</th>
+                </tr>
+              </thead>
+              <tbody id="modalHistoryTableBody">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">최근 질의 내역이 없습니다. 질문을 실행해 보세요!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 5: RAG Experiment Benchmark & Optimal Combination Analysis -->
+        <div class="cost-tab-pane" id="paneExperiments">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.6rem;">
+            <div>
+              <span style="font-size: 0.88rem; color: #cbd5e1; font-weight: 700;">🔬 RAG 파이프라인 실험 로그 & 최적 조합 벤치마크</span>
+              <p style="font-size: 0.73rem; color: var(--text-muted); margin-top: 2px;">
+                인덱싱/질문 전송 시 OCR·임베딩·캐시·LLM·페이지수·청크수·과금·지연시간이 자동 저장됩니다.
+              </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+              <div class="page-nav-group" style="background: rgba(15, 23, 42, 0.7); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <button type="button" class="btn-page-nav" onclick="filterExperimentLogs('')" id="btnExpFilterAll" style="font-size: 0.72rem; padding: 2px 8px; font-weight: 600; background: #38bdf8; color: #0f172a;">전체</button>
+                <button type="button" class="btn-page-nav" onclick="filterExperimentLogs('indexing')" id="btnExpFilterIndex" style="font-size: 0.72rem; padding: 2px 8px; background: #1e293b; color: #cbd5e1;">인덱싱(A)</button>
+                <button type="button" class="btn-page-nav" onclick="filterExperimentLogs('query')" id="btnExpFilterQuery" style="font-size: 0.72rem; padding: 2px 8px; background: #1e293b; color: #cbd5e1;">질문(B)</button>
+              </div>
+              <a href="/api/experiments/export/csv" download class="btn btn-outline" style="width: auto; padding: 0.3rem 0.65rem; font-size: 0.72rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                <span>📥</span><span>CSV</span>
+              </a>
+              <a href="/api/experiments/export/jsonl" download class="btn btn-outline" style="width: auto; padding: 0.3rem 0.65rem; font-size: 0.72rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                <span>📥</span><span>JSONL</span>
+              </a>
+              <button type="button" class="btn btn-outline" onclick="loadExperimentLogs()" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.72rem; cursor: pointer;" title="로그 새로고침">
+                <span>🔄</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Optimal Combination Recommendations Card -->
+          <div id="expRecommendationsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="background: rgba(16, 185, 129, 0.07); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 0.75rem;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #34d399; margin-bottom: 0.3rem;">💰 최고 가성비 추천 조합</div>
+              <div style="font-size: 0.73rem; color: #e2e8f0; line-height: 1.45;" id="recBestCostText">
+                로딩 중...
+              </div>
+            </div>
+            <div style="background: rgba(56, 189, 248, 0.07); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 0.75rem;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.3rem;">⚡ 최고 속도 추천 조합</div>
+              <div style="font-size: 0.73rem; color: #e2e8f0; line-height: 1.45;" id="recFastestText">
+                로딩 중...
+              </div>
+            </div>
+            <div style="background: rgba(168, 85, 247, 0.07); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm); padding: 0.75rem;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #c084fc; margin-bottom: 0.3rem;">🎯 균형잡힌 추천 조합</div>
+              <div style="font-size: 0.73rem; color: #e2e8f0; line-height: 1.45;" id="recBalancedText">
+                로딩 중...
+              </div>
+            </div>
+          </div>
+
+          <!-- Experiment Logs Table -->
+          <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            <table class="cost-table">
+              <thead>
+                <tr>
+                  <th style="min-width: 80px;">시간</th>
+                  <th style="min-width: 60px;">유형</th>
+                  <th style="min-width: 140px;">대상 파일 / 질문</th>
+                  <th style="min-width: 110px;">OCR / 페이지 / 청크</th>
+                  <th style="min-width: 130px;">모델 조합 (임베딩 + LLM)</th>
+                  <th style="min-width: 75px;">캐시</th>
+                  <th style="text-align: right; min-width: 70px;">소요시간</th>
+                  <th style="text-align: right; min-width: 75px;">총 토큰</th>
+                  <th style="text-align: right; min-width: 85px;">과금 (USD)</th>
+                </tr>
+              </thead>
+              <tbody id="modalExperimentTableBody">
+                <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">실험 로그를 불러오는 중입니다...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Escape both text and quoted HTML attributes. User input is never trusted markup.
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]));
+    }
+
+    // 상태 및 엘리먼트 참조
+    const pdfSelect = document.getElementById('pdfSelect');
+    const pdfUpload = document.getElementById('pdfUpload');
+    const chunkSizeRange = document.getElementById('chunkSizeRange');
+    const chunkSizeVal = document.getElementById('chunkSizeVal');
+    const chunkOverlapRange = document.getElementById('chunkOverlapRange');
+    const chunkOverlapVal = document.getElementById('chunkOverlapVal');
+    const topKRange = document.getElementById('topKRange');
+    const topKVal = document.getElementById('topKVal');
+    const embeddingModelSelect = document.getElementById('embeddingModelSelect');
+    const llmModelSelect = document.getElementById('llmModelSelect');
+    const ocrModeSelect = document.getElementById('ocrModeSelect');
+    const toggleOcrPromptBtn = document.getElementById('toggleOcrPromptBtn');
+    const ocrPromptCollapse = document.getElementById('ocrPromptCollapse');
+    const ocrPromptChevron = document.getElementById('ocrPromptChevron');
+    const ocrSystemInstructionInput = document.getElementById('ocrSystemInstructionInput');
+    const ocrPromptTemplateInput = document.getElementById('ocrPromptTemplateInput');
+    const btnResetOcrPrompt = document.getElementById('btnResetOcrPrompt');
+    const ocrPromptSavedNotice = document.getElementById('ocrPromptSavedNotice');
+    const btnIndex = document.getElementById('btnIndex');
+    const indexBtnText = document.getElementById('indexBtnText');
+    const queryInput = document.getElementById('queryInput');
+    const btnAsk = document.getElementById('btnAsk');
+    const askBtnText = document.getElementById('askBtnText');
+    const answerCard = document.getElementById('answerCard');
+    const dbModal = document.getElementById('dbModal');
+
+    // Step A1 페이지 탐색 및 열람 컨트롤 참조
+    const a1PageSelect = document.getElementById('a1PageSelect');
+    const a1PrevBtn = document.getElementById('a1PrevBtn');
+    const a1NextBtn = document.getElementById('a1NextBtn');
+    const a1PageIndicator = document.getElementById('a1PageIndicator');
+    const a1FetchPagesBtn = document.getElementById('a1FetchPagesBtn');
+    const a1PageStatus = document.getElementById('a1PageStatus');
+    const a1PageCharCount = document.getElementById('a1PageCharCount');
+    let currentA1Pages = [];
+    let currentA1PageIndex = 0;
+
+    // Step A2 청크 10개 단위 페이징 컨트롤 참조
+    const a2Toolbar = document.getElementById('a2Toolbar');
+    const a2PageSelect = document.getElementById('a2PageSelect');
+    const a2PrevBtn = document.getElementById('a2PrevBtn');
+    const a2NextBtn = document.getElementById('a2NextBtn');
+    const a2Prev10Btn = document.getElementById('a2Prev10Btn');
+    const a2Next10Btn = document.getElementById('a2Next10Btn');
+    const a2PageIndicator = document.getElementById('a2PageIndicator');
+    const a2ItemRange = document.getElementById('a2ItemRange');
+    const a2TotalBadge = document.getElementById('a2TotalBadge');
+    let currentA2Chunks = [];
+    let currentA2Page = 1;
+    const A2_PAGE_SIZE = 10;
+
+    function renderA2ChunkPage(page = 1) {
+      if (!currentA2Chunks || currentA2Chunks.length === 0) {
+        if (a2Toolbar) a2Toolbar.style.display = 'none';
+        if (a2TotalBadge) a2TotalBadge.style.display = 'none';
+        document.getElementById('a2Preview').textContent = '// 분할된 청크가 없습니다.';
+        return;
+      }
+
+      const totalItems = currentA2Chunks.length;
+      const totalPages = Math.ceil(totalItems / A2_PAGE_SIZE);
+      if (page < 1) page = 1;
+      if (page > totalPages) page = totalPages;
+      currentA2Page = page;
+
+      const startIdx = (page - 1) * A2_PAGE_SIZE;
+      const endIdx = Math.min(startIdx + A2_PAGE_SIZE, totalItems);
+      const pageChunks = currentA2Chunks.slice(startIdx, endIdx);
+
+      // 툴바 상태 갱신
+      if (a2Toolbar) a2Toolbar.style.display = 'flex';
+      if (a2TotalBadge) {
+        a2TotalBadge.style.display = 'inline-block';
+        a2TotalBadge.textContent = `${totalItems}개 청크`;
+      }
+      if (a2PageIndicator) a2PageIndicator.textContent = `${page} / ${totalPages} 페이지`;
+      if (a2ItemRange) a2ItemRange.textContent = `${startIdx + 1}~${endIdx}번 청크 (총 ${totalItems}개)`;
+      if (a2PrevBtn) a2PrevBtn.disabled = (page === 1);
+      if (a2NextBtn) a2NextBtn.disabled = (page === totalPages);
+      if (a2Prev10Btn) a2Prev10Btn.disabled = (page <= 1);
+      if (a2Next10Btn) a2Next10Btn.disabled = (page >= totalPages);
+
+      // 셀렉트 박스 갱신
+      if (a2PageSelect) {
+        a2PageSelect.innerHTML = '';
+        for (let p = 1; p <= totalPages; p++) {
+          const opt = document.createElement('option');
+          opt.value = p;
+          const pStart = (p - 1) * A2_PAGE_SIZE + 1;
+          const pEnd = Math.min(p * A2_PAGE_SIZE, totalItems);
+          opt.textContent = `${p}페이지 (${pStart}~${pEnd}번)`;
+          if (p === page) opt.selected = true;
+          a2PageSelect.appendChild(opt);
+        }
+      }
+
+      // 청크 본문 렌더링
+      let a2Txt = `[분할 청크 목록] ${page}페이지 (${startIdx + 1}번 ~ ${endIdx}번 / 총 ${totalItems}개 청크)\n`;
+      a2Txt += `======================================================================\n\n`;
+      pageChunks.forEach((c, idx) => {
+        const globalNum = startIdx + idx + 1;
+        const dupBadge = c.is_duplicate ? ' ⚠️ [기존DB 중복 감지]' : '';
+        const hashStr = c.content_hash ? ` | 해시: ${c.content_hash}` : '';
+        a2Txt += `[청크 #${globalNum} | ${c.chunk_id} | 원문 ${c.page}쪽 | ${c.length}자${hashStr}${dupBadge}]\n`;
+        a2Txt += `${c.content}\n\n`;
+        if (idx < pageChunks.length - 1) {
+          a2Txt += `----------------------------------------------------------------------\n\n`;
+        }
+      });
+      document.getElementById('a2Preview').textContent = a2Txt.trim();
+    }
+
+    if (a2PageSelect) {
+      a2PageSelect.onchange = () => {
+        renderA2ChunkPage(parseInt(a2PageSelect.value, 10));
+      };
+    }
+    if (a2PrevBtn) {
+      a2PrevBtn.onclick = () => {
+        if (currentA2Page > 1) renderA2ChunkPage(currentA2Page - 1);
+      };
+    }
+    if (a2NextBtn) {
+      a2NextBtn.onclick = () => {
+        const totalPages = Math.ceil(currentA2Chunks.length / A2_PAGE_SIZE);
+        if (currentA2Page < totalPages) renderA2ChunkPage(currentA2Page + 1);
+      };
+    }
+    if (a2Prev10Btn) {
+      a2Prev10Btn.onclick = () => {
+        renderA2ChunkPage(Math.max(1, currentA2Page - 10));
+      };
+    }
+    if (a2Next10Btn) {
+      a2Next10Btn.onclick = () => {
+        const totalPages = Math.ceil(currentA2Chunks.length / A2_PAGE_SIZE);
+        renderA2ChunkPage(Math.min(totalPages, currentA2Page + 10));
+      };
+    }
+
+    // Step B2 관련 청크 10개 단위 페이징 컨트롤 참조
+    const b2Toolbar = document.getElementById('b2Toolbar');
+    const b2PageSelect = document.getElementById('b2PageSelect');
+    const b2PrevBtn = document.getElementById('b2PrevBtn');
+    const b2NextBtn = document.getElementById('b2NextBtn');
+    const b2PageIndicator = document.getElementById('b2PageIndicator');
+    const b2ItemRange = document.getElementById('b2ItemRange');
+    const b2TotalBadge = document.getElementById('b2TotalBadge');
+    let currentB2Matches = [];
+    let currentB2Page = 1;
+    const B2_PAGE_SIZE = 10;
+
+    function renderB2ChunkPage(page = 1) {
+      if (!currentB2Matches || currentB2Matches.length === 0) {
+        b2Toolbar.style.display = 'none';
+        b2TotalBadge.style.display = 'none';
+        document.getElementById('b2Preview').textContent = '// 검색된 청크가 없습니다.';
+        return;
+      }
+
+      const totalItems = currentB2Matches.length;
+      const totalPages = Math.ceil(totalItems / B2_PAGE_SIZE);
+      if (page < 1) page = 1;
+      if (page > totalPages) page = totalPages;
+      currentB2Page = page;
+
+      const startIdx = (page - 1) * B2_PAGE_SIZE;
+      const endIdx = Math.min(startIdx + B2_PAGE_SIZE, totalItems);
+      const pageMatches = currentB2Matches.slice(startIdx, endIdx);
+
+      // 툴바 상태 갱신
+      b2Toolbar.style.display = totalItems > 0 ? 'flex' : 'none';
+      b2TotalBadge.style.display = 'inline-block';
+      b2TotalBadge.textContent = `${totalItems}개 청크`;
+      b2PageIndicator.textContent = `${page} / ${totalPages} 페이지`;
+      b2ItemRange.textContent = `${startIdx + 1}~${endIdx}위 (총 ${totalItems}개 중)`;
+      b2PrevBtn.disabled = (page === 1);
+      b2NextBtn.disabled = (page === totalPages);
+
+      // 셀렉트 박스 갱신
+      b2PageSelect.innerHTML = '';
+      for (let p = 1; p <= totalPages; p++) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        const pStart = (p - 1) * B2_PAGE_SIZE + 1;
+        const pEnd = Math.min(p * B2_PAGE_SIZE, totalItems);
+        opt.textContent = `${p}페이지 (${pStart}~${pEnd}위)`;
+        if (p === page) opt.selected = true;
+        b2PageSelect.appendChild(opt);
+      }
+
+      // 청크 텍스트 렌더링
+      let b2Txt = `[관련 청크 검색결과] ${page}페이지 (${startIdx + 1}위 ~ ${endIdx}위 / 총 ${totalItems}개)\n`;
+      b2Txt += `======================================================================\n\n`;
+      pageMatches.forEach(m => {
+        b2Txt += `[#${m.rank} 순위] 유사도/RRF: ${m.score_pct || m.score} | 출처: ${m.page}쪽 (${m.chunk_id})\n`;
+        b2Txt += `${m.snippet || m.content}\n\n`;
+      });
+      document.getElementById('b2Preview').textContent = b2Txt.trim();
+    }
+
+    b2PageSelect.onchange = () => {
+      renderB2ChunkPage(parseInt(b2PageSelect.value, 10));
+    };
+    b2PrevBtn.onclick = () => {
+      if (currentB2Page > 1) renderB2ChunkPage(currentB2Page - 1);
+    };
+    b2NextBtn.onclick = () => {
+      const totalPages = Math.ceil(currentB2Matches.length / B2_PAGE_SIZE);
+      if (currentB2Page < totalPages) renderB2ChunkPage(currentB2Page + 1);
+    };
+
+    // Step A1 페이지 전환 및 렌더링 함수
+    function selectA1PageIndex(idx) {
+      if (!currentA1Pages || currentA1Pages.length === 0) return;
+      if (idx < 0) idx = 0;
+      if (idx >= currentA1Pages.length) idx = currentA1Pages.length - 1;
+      currentA1PageIndex = idx;
+
+      const item = currentA1Pages[idx];
+      a1PageSelect.value = item.page;
+      a1PageIndicator.textContent = `${idx + 1} / ${currentA1Pages.length} 쪽`;
+      a1PrevBtn.disabled = (idx === 0);
+      a1NextBtn.disabled = (idx === currentA1Pages.length - 1);
+
+      a1PageCharCount.textContent = `${item.char_count.toLocaleString()}자`;
+      if (item.ocr_model) {
+        a1PageStatus.textContent = `[${item.ocr_model}${item.cached ? ' · 캐시됨' : ''}]`;
+      } else {
+        a1PageStatus.textContent = '[디지털 텍스트]';
+      }
+
+      document.getElementById('a1Preview').textContent = item.content || '(해당 페이지에 추출된 텍스트가 없습니다)';
+    }
+
+    function renderA1Pages(pages, selectedPageNum = 1) {
+      currentA1Pages = Array.isArray(pages) ? pages : [];
+      a1PageSelect.innerHTML = '';
+
+      if (currentA1Pages.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '1';
+        opt.textContent = '1쪽';
+        a1PageSelect.appendChild(opt);
+        a1PageIndicator.textContent = '- / - 쪽';
+        a1PrevBtn.disabled = true;
+        a1NextBtn.disabled = true;
+        a1PageCharCount.textContent = '-';
+        a1PageStatus.textContent = '';
+        return;
+      }
+
+      let matchedIdx = 0;
+      currentA1Pages.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = p.page;
+        opt.textContent = `${p.page}쪽 (${p.char_count.toLocaleString()}자)`;
+        if (p.page === selectedPageNum) {
+          matchedIdx = idx;
+        }
+        a1PageSelect.appendChild(opt);
+      });
+
+      selectA1PageIndex(matchedIdx);
+    }
+
+    a1PageSelect.onchange = () => {
+      const pageNum = parseInt(a1PageSelect.value, 10);
+      const foundIdx = currentA1Pages.findIndex(p => p.page === pageNum);
+      if (foundIdx !== -1) {
+        selectA1PageIndex(foundIdx);
+      }
+    };
+
+    a1PrevBtn.onclick = () => {
+      if (currentA1PageIndex > 0) {
+        selectA1PageIndex(currentA1PageIndex - 1);
+      }
+    };
+
+    a1NextBtn.onclick = () => {
+      if (currentA1PageIndex < currentA1Pages.length - 1) {
+        selectA1PageIndex(currentA1PageIndex + 1);
+      }
+    };
+
+    // A1 단독 페이지 바로 읽기 버튼 (인덱싱 없이 빠르게 페이지 검사)
+    a1FetchPagesBtn.onclick = async () => {
+      const pdfPath = pdfSelect.value;
+      if (!pdfPath) {
+        alert('PDF를 먼저 선택하세요.');
+        return;
+      }
+      a1FetchPagesBtn.disabled = true;
+      a1FetchPagesBtn.textContent = '⏳ 읽는 중...';
+      try {
+        const curPage = (currentA1Pages[currentA1PageIndex] ? currentA1Pages[currentA1PageIndex].page : 1);
+        const payload = {
+          pdf_path: pdfPath,
+          ocr_mode: ocrModeSelect ? ocrModeSelect.value : 'auto',
+          ocr_system_instruction: ocrSystemInstructionInput ? (ocrSystemInstructionInput.value.trim() || undefined) : undefined,
+          ocr_prompt_template: ocrPromptTemplateInput ? (ocrPromptTemplateInput.value.trim() || undefined) : undefined,
+          preview_page: curPage
+        };
+        const res = await fetch('/api/pdf/pages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert('페이지 읽기 실패: ' + (data.detail || JSON.stringify(data)));
+          return;
+        }
+
+        // A1 메타데이터 반영
+        document.getElementById('a1FileName').textContent = data.file_name;
+        document.getElementById('a1TotalPages').textContent = `${data.total_pages}쪽 (추출: ${data.extracted_pages}쪽)`;
+        document.getElementById('a1FileSize').textContent = `${data.file_size_kb} KB`;
+        document.getElementById('a1LoaderType').textContent = data.loader_type || 'PyPDFLoader';
+
+        const badge = document.getElementById('a1LoaderBadge');
+        const notice = document.getElementById('a1OcrNotice');
+        if (data.ocr_used) {
+          badge.style.display = 'inline-block';
+          badge.textContent = 'Gemini 3.8 Flash OCR';
+          if (data.ocr_reason) {
+            notice.style.display = 'block';
+            notice.textContent = '💡 ' + data.ocr_reason;
+          } else {
+            notice.style.display = 'none';
+          }
+        } else {
+          badge.style.display = 'none';
+          notice.style.display = 'none';
+        }
+
+        renderA1Pages(data.pages, data.selected_page || curPage);
+      } catch (err) {
+        alert('페이지 읽기 오류: ' + err);
+      } finally {
+        a1FetchPagesBtn.disabled = false;
+        a1FetchPagesBtn.textContent = '📖 바로 읽기';
+      }
+    };
+
+    // 슬라이더 및 모델 셀렉트 바인딩
+    chunkSizeRange.oninput = () => chunkSizeVal.textContent = chunkSizeRange.value;
+    chunkOverlapRange.oninput = () => chunkOverlapVal.textContent = chunkOverlapRange.value;
+    topKRange.oninput = () => topKVal.textContent = topKRange.value;
+    llmModelSelect.onchange = () => {
+      document.getElementById('currentLlmTag').textContent = llmModelSelect.value;
+    };
+
+    // Gemini OCR 커스텀 프롬프트 아코디언 및 로컬 스토리지 바인딩
+    let ocrPromptOpen = false;
+    toggleOcrPromptBtn.onclick = () => {
+      ocrPromptOpen = !ocrPromptOpen;
+      ocrPromptCollapse.style.display = ocrPromptOpen ? 'block' : 'none';
+      ocrPromptChevron.textContent = ocrPromptOpen ? '▲' : '▼';
+    };
+
+    let defaultOcrSystemInstruction = '';
+    let defaultOcrPromptTemplate = '';
+
+    function showOcrSavedNotice() {
+      if (!ocrPromptSavedNotice) return;
+      ocrPromptSavedNotice.style.display = 'inline';
+      setTimeout(() => { ocrPromptSavedNotice.style.display = 'none'; }, 2000);
+    }
+
+    ocrSystemInstructionInput.oninput = () => {
+      localStorage.setItem('gemini_ocr_system_instruction', ocrSystemInstructionInput.value);
+      showOcrSavedNotice();
+    };
+
+    ocrPromptTemplateInput.oninput = () => {
+      localStorage.setItem('gemini_ocr_prompt_template', ocrPromptTemplateInput.value);
+      showOcrSavedNotice();
+    };
+
+    btnResetOcrPrompt.onclick = () => {
+      if (confirm('Gemini OCR 프롬프트를 기본값으로 초기화하시겠습니까?')) {
+        localStorage.removeItem('gemini_ocr_system_instruction');
+        localStorage.removeItem('gemini_ocr_prompt_template');
+        ocrSystemInstructionInput.value = defaultOcrSystemInstruction;
+        ocrPromptTemplateInput.value = defaultOcrPromptTemplate;
+        showOcrSavedNotice();
+      }
+    };
+
+    function setQuery(text) {
+      queryInput.value = text;
+      queryInput.focus();
+    }
+
+    function toggleModal(open) {
+      if (open) {
+        dbModal.classList.add('open');
+        fetchDbSample();
+      } else {
+        dbModal.classList.remove('open');
+      }
+    }
+    document.getElementById('btnInspectDb').onclick = () => toggleModal(true);
+
+    // 초기 설정 로드
+    async function initConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        
+        // PDF 옵션 추가
+        pdfSelect.innerHTML = '';
+        if (!data.available_pdfs.length) {
+          const placeholder = document.createElement('option');
+          placeholder.value = '';
+          placeholder.textContent = 'PDF를 업로드하세요 (배포본에는 PDF 없음)';
+          pdfSelect.appendChild(placeholder);
+        }
+        data.available_pdfs.forEach(pdf => {
+          const opt = document.createElement('option');
+          opt.value = pdf.path;
+          opt.textContent = `${pdf.name} (${pdf.size_kb} KB)`;
+          if (pdf.name.includes('openrouter')) opt.selected = true;
+          pdfSelect.appendChild(opt);
+        });
+
+        // LLM 모델 옵션 갱신 (서버 설정 반영)
+        if (data.llm_model_details && data.llm_model_details.length) {
+          const prevVal = llmModelSelect.value;
+          llmModelSelect.innerHTML = '';
+          data.llm_model_details.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.name || m.id;
+            if (m.id === prevVal) opt.selected = true;
+            llmModelSelect.appendChild(opt);
+          });
+          document.getElementById('currentLlmTag').textContent = llmModelSelect.value;
+        } else if (data.supported_llm_models && data.supported_llm_models.length) {
+          const prevVal = llmModelSelect.value;
+          llmModelSelect.innerHTML = '';
+          data.supported_llm_models.forEach(mId => {
+            const opt = document.createElement('option');
+            opt.value = mId;
+            opt.textContent = mId.includes('gemma') ? `${mId} (Ollama 로컬)` : `${mId} (Vertex AI)`;
+            if (mId === prevVal) opt.selected = true;
+            llmModelSelect.appendChild(opt);
+          });
+          document.getElementById('currentLlmTag').textContent = llmModelSelect.value;
+        }
+
+        // DB 통계 갱신
+        updateDbStats(data.system_stats.db_stats);
+        if (data.embedding_cache_stats) {
+          updateCacheStats(data.embedding_cache_stats);
+        }
+        if (data.system_stats.active_auth_method) {
+          document.getElementById('authDesc').textContent = data.system_stats.active_auth_method;
+        }
+
+        // Gemini OCR 기본 프롬프트 수신 및 로컬스토리지 복원
+        defaultOcrSystemInstruction = data.default_ocr_system_instruction || '';
+        defaultOcrPromptTemplate = data.default_ocr_prompt_template || '';
+
+        const savedSys = localStorage.getItem('gemini_ocr_system_instruction');
+        const savedTpl = localStorage.getItem('gemini_ocr_prompt_template');
+        ocrSystemInstructionInput.value = (savedSys !== null && savedSys !== undefined) ? savedSys : defaultOcrSystemInstruction;
+        ocrPromptTemplateInput.value = (savedTpl !== null && savedTpl !== undefined) ? savedTpl : defaultOcrPromptTemplate;
+      } catch (err) {
+        console.error('설정 로드 실패:', err);
+      }
+    }
+
+    function updateDbStats(stats) {
+      if (!stats) return;
+      document.getElementById('dbTableName').textContent = stats.table_name || 'langchain_documents';
+      document.getElementById('dbTotalRecords').textContent = `${stats.total_records || 0} 개`;
+      document.getElementById('dbFileSize').textContent = `${((stats.file_size_bytes || 0) / 1024).toFixed(1)} KB`;
+      document.getElementById('dbVectorDim').textContent = stats.vector_dimension ? `${stats.vector_dimension} 차원` : '-';
+    }
+
+    function updateCacheStats(stats) {
+      if (!stats) return;
+      const totalEl = document.getElementById('cacheTotalEntries');
+      const hitsEl = document.getElementById('cacheLifetimeHits');
+      const rateEl = document.getElementById('cacheSessionHitRate');
+      const sizeEl = document.getElementById('cacheFileSize');
+      if (totalEl) totalEl.textContent = `${stats.total_cached_entries || 0} 개`;
+      if (hitsEl) hitsEl.textContent = `${stats.lifetime_hits || 0} 회`;
+      if (rateEl) rateEl.textContent = `${stats.session_hit_rate || 0}%`;
+      if (sizeEl) sizeEl.textContent = `${stats.file_size_kb || 0} KB`;
+    }
+
+    async function fetchEmbeddingCacheStats() {
+      try {
+        const res = await fetch('/api/cache/embedding/stats');
+        const data = await res.json();
+        updateCacheStats(data);
+      } catch (err) {
+        console.error('캐시 통계 갱신 실패:', err);
+      }
+    }
+
+    // 캐시 비우기 버튼 이벤트
+    const btnClearCache = document.getElementById('btnClearEmbeddingCache');
+    if (btnClearCache) {
+      btnClearCache.onclick = async () => {
+        if (!confirm('SQLite 임베딩 캐시를 비우시겠습니까?\n이후 인덱싱 및 질의 시 원격 임베딩 API를 다시 호출합니다.')) return;
+        try {
+          const res = await fetch('/api/cache/embedding/clear', { method: 'POST' });
+          const data = await res.json();
+          alert(data.message || '임베딩 캐시가 성공적으로 초기화되었습니다.');
+          fetchEmbeddingCacheStats();
+        } catch (err) {
+          alert('캐시 비우기 실패: ' + err);
+        }
+      };
+    }
+
+    // PDF 셀렉트 변경 시 A1 상태 초기화
+    pdfSelect.onchange = () => {
+      currentA1Pages = [];
+      currentA1PageIndex = 0;
+      a1PageSelect.innerHTML = '<option value="1">1쪽</option>';
+      a1PageIndicator.textContent = '- / - 쪽';
+      a1PrevBtn.disabled = true;
+      a1NextBtn.disabled = true;
+      a1PageCharCount.textContent = '-';
+      a1PageStatus.textContent = '';
+      document.getElementById('a1Preview').textContent = '// 상단의 [⚡ 인덱싱 실행] 또는 [📖 바로 읽기] 버튼을 누르면 선택한 PDF의 페이지 내용을 확인할 수 있습니다.';
+      document.getElementById('a1LoaderType').textContent = '-';
+      document.getElementById('a1FileName').textContent = '-';
+      document.getElementById('a1TotalPages').textContent = '-';
+      document.getElementById('a1FileSize').textContent = '-';
+      document.getElementById('a1LoaderBadge').style.display = 'none';
+      document.getElementById('a1OcrNotice').style.display = 'none';
+
+      // Step A2 상태 초기화
+      currentA2Chunks = [];
+      currentA2Page = 1;
+      if (a2Toolbar) a2Toolbar.style.display = 'none';
+      if (a2TotalBadge) a2TotalBadge.style.display = 'none';
+      document.getElementById('a2TotalChunks').textContent = '-';
+      document.getElementById('a2Dist').textContent = '-';
+      document.getElementById('a2Preview').textContent = '// 인덱싱 실행 시 분할된 청크가 10개 단위로 표시됩니다.';
+    };
+
+    // PDF 업로드 처리
+    pdfUpload.onchange = async () => {
+      if (!pdfUpload.files.length) return;
+      const file = pdfUpload.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`PDF 업로드 완료: ${data.file_name}`);
+          const opt = document.createElement('option');
+          opt.value = data.file_path;
+          opt.textContent = `${data.file_name} (${data.size_kb} KB)`;
+          opt.selected = true;
+          pdfSelect.prepend(opt);
+        } else {
+          alert(`업로드 실패: ${data.detail}`);
+        }
+      } catch (e) {
+        alert('업로드 중 오류 발생: ' + e);
+      }
+    };
+
+    // Part A 인덱싱 결과 렌더링 함수
+    function renderIndexingResult(data, curPage) {
+      if (!data) return;
+
+      // A1 렌더링
+      const a1 = data.step_a1;
+      if (a1) {
+        document.getElementById('a1FileName').textContent = a1.file_name || '-';
+        document.getElementById('a1TotalPages').textContent = `${a1.total_pages || 0}쪽 (추출: ${a1.extracted_pages || 0}쪽)`;
+        document.getElementById('a1FileSize').textContent = `${a1.file_size_kb || 0} KB`;
+        document.getElementById('a1LoaderType').textContent = a1.loader_type || 'PyPDFLoader';
+
+        const badge = document.getElementById('a1LoaderBadge');
+        const notice = document.getElementById('a1OcrNotice');
+        if (a1.ocr_used) {
+          badge.style.display = 'inline-block';
+          badge.textContent = 'Gemini 3.8 Flash OCR';
+          if (a1.ocr_reason) {
+            notice.style.display = 'block';
+            notice.textContent = '💡 ' + a1.ocr_reason;
+          } else {
+            notice.style.display = 'none';
+          }
+        } else {
+          badge.style.display = 'none';
+          notice.style.display = 'none';
+        }
+
+        renderA1Pages(a1.pages, a1.selected_page || curPage);
+      }
+
+      // A2 렌더링 (10개 단위 페이징 & 중복 분석 반영)
+      const a2 = data.step_a2;
+      if (a2) {
+        document.getElementById('a2TotalChunks').textContent = `${a2.total_chunks || 0} 개`;
+        document.getElementById('a2Dist').textContent = `최소 ${a2.min_length || 0}자 / 평균 ${a2.avg_length || 0}자 / 최대 ${a2.max_length || 0}자`;
+
+        const dupStatusEl = document.getElementById('a2DupStatus');
+        const alertEl = document.getElementById('a2SubsetAlert');
+        if (dupStatusEl) {
+          if (a2.duplicate_chunk_count > 0) {
+            dupStatusEl.textContent = `${a2.duplicate_chunk_count}개 중복 (${a2.duplicate_ratio}%)`;
+            dupStatusEl.style.color = a2.duplicate_diagnosis === 'SUBSET' ? '#ef4444' : '#f59e0b';
+          } else {
+            dupStatusEl.textContent = '신규 청크 100% (중복 없음)';
+            dupStatusEl.style.color = '#34d399';
+          }
+        }
+
+        if (alertEl) {
+          if (a2.duplicate_diagnosis === 'SUBSET') {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(239, 68, 68, 0.15)';
+            alertEl.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+            alertEl.style.color = '#f87171';
+            alertEl.innerHTML = `⚠️ <strong>기존 문서 발췌본(부분 집합) 감지!</strong> 전체 청크 중 <strong>${a2.duplicate_ratio}%</strong>가 기존 DB(<code>${escapeHtml((a2.matched_existing_sources || []).join(', ') || '기존 문서')}</code>)에 이미 존재합니다.`;
+          } else if (a2.duplicate_diagnosis === 'PARTIAL_DUP') {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(245, 158, 11, 0.15)';
+            alertEl.style.border = '1px solid rgba(245, 158, 11, 0.4)';
+            alertEl.style.color = '#fbbf24';
+            alertEl.innerHTML = `💡 <strong>일부 청크 중복 감지:</strong> ${a2.duplicate_chunk_count}개 청크(${a2.duplicate_ratio}%)가 기존 문서와 내용이 동일합니다.`;
+          } else {
+            alertEl.style.display = 'none';
+          }
+        }
+
+        currentA2Chunks = a2.chunks || a2.sample_chunks || [];
+        renderA2ChunkPage(1);
+      }
+
+      // A3 렌더링
+      const a3 = data.step_a3;
+      if (a3) {
+        document.getElementById('a3Model').textContent = a3.model_name || '-';
+        document.getElementById('a3Dim').textContent = `${a3.dimension || 0} 차원`;
+        document.getElementById('a3Elapsed').textContent = `${a3.elapsed_sec || 0} 초`;
+
+        const a3CostEl = document.getElementById('a3Cost');
+        if (a3CostEl && a3.cost_estimation) {
+          const c = a3.cost_estimation;
+          const tokensStr = (c.total_tokens || 0).toLocaleString();
+          a3CostEl.textContent = `${escapeHtml(c.formatted_usd)} (${tokensStr} 토큰 / ${escapeHtml(c.formatted_krw)})`;
+        }
+
+        const a3CacheEl = document.getElementById('a3CacheStats');
+        if (a3CacheEl) {
+          if (a3.cache_enabled) {
+            const hits = a3.cache_hits || 0;
+            const misses = a3.cache_misses || 0;
+            const ratio = a3.cache_hit_ratio || 0;
+            if (a3.cached) {
+              a3CacheEl.innerHTML = `<span style="color: #10b981; font-weight: 700;">⚡ 100% 캐시 재사용</span> (${hits}개 청크 적중 / 0초)`;
+            } else if (hits > 0) {
+              a3CacheEl.innerHTML = `<span style="color: #38bdf8;">적중 ${hits}개</span> / 신규 ${misses}개 (${ratio}%)`;
+            } else {
+              a3CacheEl.textContent = `신규 생성 ${misses}개 (0% 캐시)`;
+            }
+          } else {
+            a3CacheEl.textContent = '캐시 비활성화됨';
+          }
+        }
+
+        let previewText = `임베딩 완료 (${a3.total_embedded || 0}개 청크)\n벡터 L2 Norm: ${a3.l2_norm || '-'}\n1번 벡터 수치 샘플: [${(a3.sample_vector_preview || []).join(', ')} ...]`;
+        if (a3.cache_enabled && a3.cache_hits > 0) {
+          previewText += `\n\n[⚡ 임베딩 캐시]: ${a3.cache_hits}개 벡터를 SQLite 캐시에서 0초 즉시 재사용했습니다.`;
+        }
+        document.getElementById('a3Preview').textContent = previewText;
+      }
+
+      // A4 렌더링
+      const a4 = data.step_a4;
+      if (a4) {
+        document.getElementById('a4Table').textContent = a4.table_name || '-';
+        document.getElementById('a4Records').textContent = `${a4.total_records || 0} 개`;
+        document.getElementById('a4Preview').textContent = JSON.stringify(a4.sample_record, null, 2);
+
+        // 좌측 사이드바 DB 통계 갱신
+        updateDbStats({
+          table_name: a4.table_name,
+          total_records: a4.total_records,
+          file_size_bytes: (a4.file_size_kb || 0) * 1024,
+          vector_dimension: a3 ? a3.dimension : undefined
+        });
+      }
+    }
+
+    // 인덱싱 진행률(프로그레스 바, 퍼센트, 스텝 칩) UI 갱신 함수
+    function updateIndexProgress(percent, step, message, detail) {
+      const pct = Math.max(0, Math.min(100, Math.round(percent)));
+
+      const bar = document.getElementById('indexProgressBar');
+      const pctEl = document.getElementById('indexProgressPercent');
+      const msgEl = document.getElementById('indexProgressMessage');
+      const detailEl = document.getElementById('indexProgressDetail');
+
+      if (bar) bar.style.width = `${pct}%`;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (msgEl && message) msgEl.textContent = message;
+      if (detailEl && detail) detailEl.textContent = detail;
+
+      // 버튼 텍스트에 진행율 및 퍼센트 표기
+      if (pct < 100) {
+        indexBtnText.innerHTML = `<span class="spinner"></span> 인덱싱 처리 중 (A1 → A4) · ${pct}%`;
+      } else {
+        indexBtnText.innerHTML = `✅ 인덱싱 완료 (100%)`;
+      }
+
+      // 글로벌 Part A 배너 바 동기화
+      const partABar = document.getElementById('partAGlobalProgressBar');
+      const partAPct = document.getElementById('partABannerPercent');
+      if (partABar) partABar.style.width = `${pct}%`;
+      if (partAPct) {
+        partAPct.style.display = 'inline-block';
+        partAPct.textContent = `${pct}%`;
+      }
+
+      // 스텝 칩 상태 갱신 (A1, A2, A3, A4)
+      const chips = {
+        A1: document.getElementById('chipA1'),
+        A2: document.getElementById('chipA2'),
+        A3: document.getElementById('chipA3'),
+        A4: document.getElementById('chipA4')
+      };
+      const stepOrder = ['A1', 'A2', 'A3', 'A4'];
+      const curIdx = stepOrder.indexOf(step);
+
+      stepOrder.forEach((s, idx) => {
+        const el = chips[s];
+        if (!el) return;
+        el.className = 'step-chip';
+        if (pct === 100) {
+          el.classList.add('completed');
+        } else if (s === step) {
+          el.classList.add('active');
+        } else if (curIdx !== -1 && idx < curIdx) {
+          el.classList.add('completed');
+        }
+      });
+    }
+
+    // Part A 인덱싱 실행 (실시간 프로그레스 바 & 퍼센트 지원)
+    btnIndex.onclick = async () => {
+      const pdfPath = pdfSelect.value;
+      if (!pdfPath) {
+        alert('인덱싱할 PDF를 선택하세요.');
+        return;
+      }
+
+      btnIndex.disabled = true;
+      indexBtnText.innerHTML = '<span class="spinner"></span> 인덱싱 처리 중 (A1 → A4) · 0%';
+
+      // 프로그레스 바 컨테이너 및 배너 프로그레스 활성화
+      const progressContainer = document.getElementById('indexProgressContainer');
+      const partAGlobalTrack = document.getElementById('partAGlobalProgressTrack');
+      const partABannerPercent = document.getElementById('partABannerPercent');
+
+      progressContainer.style.display = 'flex';
+      if (partAGlobalTrack) partAGlobalTrack.style.display = 'block';
+      if (partABannerPercent) partABannerPercent.style.display = 'inline-block';
+
+      // 프로그레스 바 기본 스타일(그라디언트) 복원
+      const bar = document.getElementById('indexProgressBar');
+      if (bar) bar.style.background = 'linear-gradient(90deg, #6366f1 0%, #38bdf8 50%, #10b981 100%)';
+
+      updateIndexProgress(0, 'INIT', '인덱싱 초기화 및 모델 연결 확인 중...', '시작 대기');
+
+      // 경과 시간 타이머
+      const startTime = Date.now();
+      const timerEl = document.getElementById('indexProgressTimer');
+      const timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        if (timerEl) timerEl.textContent = `${elapsed}s`;
+      }, 100);
+
+      const curPage = (currentA1Pages[currentA1PageIndex] ? currentA1Pages[currentA1PageIndex].page : 1);
+      const reindexCheckbox = document.getElementById('reindexCheckbox');
+      const isReindex = reindexCheckbox ? !reindexCheckbox.checked : true;
+      const embeddingCacheCheckbox = document.getElementById('embeddingCacheCheckbox');
+      const useCache = embeddingCacheCheckbox ? embeddingCacheCheckbox.checked : true;
+
+      const payload = {
+        pdf_path: pdfPath,
+        chunk_size: parseInt(chunkSizeRange.value, 10),
+        chunk_overlap: parseInt(chunkOverlapRange.value, 10),
+        embedding_model: embeddingModelSelect.value,
+        ocr_mode: ocrModeSelect ? ocrModeSelect.value : 'auto',
+        ocr_system_instruction: ocrSystemInstructionInput ? (ocrSystemInstructionInput.value.trim() || undefined) : undefined,
+        ocr_prompt_template: ocrPromptTemplateInput ? (ocrPromptTemplateInput.value.trim() || undefined) : undefined,
+        preview_page: curPage,
+        reindex: isReindex,
+        use_embedding_cache: useCache
+      };
+
+      try {
+        // 1. 실시간 스트리밍 엔드포인트 (/api/index/stream) 호출
+        const response = await fetch('/api/index/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || `인덱싱 요청 실패 (${response.status})`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let resultData = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop(); // 아직 온전하지 않은 마지막 줄 보존
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+
+            try {
+              const msg = JSON.parse(trimmed);
+              if (msg.type === 'progress') {
+                updateIndexProgress(msg.percent, msg.step, msg.message, msg.detail);
+              } else if (msg.type === 'result') {
+                resultData = msg.data;
+              } else if (msg.type === 'error') {
+                throw new Error(msg.message || '인덱싱 중 오류가 발생했습니다.');
+              }
+            } catch (pErr) {
+              if (pErr.message && !pErr.message.includes('JSON')) {
+                throw pErr;
+              }
+            }
+          }
+        }
+
+        if (resultData) {
+          updateIndexProgress(100, 'A4', '✅ 인덱싱 완료! (A1 → A4 완료)', '색인 저장 완료');
+          renderIndexingResult(resultData, curPage);
+          fetchEmbeddingCacheStats();
+        } else {
+          throw new Error('인덱싱 결과 데이터를 수신하지 못했습니다.');
+        }
+
+      } catch (err) {
+        clearInterval(timerInterval);
+        const pBar = document.getElementById('indexProgressBar');
+        if (pBar) pBar.style.background = '#ef4444';
+        document.getElementById('indexProgressMessage').textContent = '❌ 인덱싱 오류';
+        document.getElementById('indexProgressDetail').textContent = err.message || err;
+        indexBtnText.textContent = '❌ 인덱싱 실패';
+        alert('인덱싱 오류: ' + (err.message || err));
+      } finally {
+        clearInterval(timerInterval);
+        setTimeout(() => {
+          btnIndex.disabled = false;
+          indexBtnText.textContent = '⚡ 인덱싱 실행 (Part A)';
+        }, 2500);
+      }
+    };
+
+    // Part B 질의응답 실행
+    btnAsk.onclick = async () => {
+      const q = queryInput.value.trim();
+      if (!q) {
+        alert('질문을 입력하세요.');
+        return;
+      }
+
+      btnAsk.disabled = true;
+      askBtnText.innerHTML = '<span class="spinner"></span> 질의응답 처리 중 (B1 → B4)...';
+
+      try {
+        const embeddingCacheCheckbox = document.getElementById('embeddingCacheCheckbox');
+        const useCache = embeddingCacheCheckbox ? embeddingCacheCheckbox.checked : true;
+
+        const payload = {
+          question: q,
+          top_k: parseInt(topKRange.value, 10),
+          llm_model: llmModelSelect.value,
+          embedding_model: embeddingModelSelect.value,
+          use_embedding_cache: useCache
+        };
+
+        const res = await fetch('/api/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert('질의 실패: ' + (data.detail || JSON.stringify(data)));
+          return;
+        }
+
+        // B1 렌더링
+        const b1 = data.step_b1;
+        document.getElementById('b1Dim').textContent = `${b1.dimension} 차원`;
+        document.getElementById('b1Elapsed').textContent = `${b1.elapsed_sec} 초`;
+
+        const b1CostEl = document.getElementById('b1Cost');
+        if (b1CostEl && b1.cost_estimation) {
+          const c = b1.cost_estimation;
+          const tokensStr = (c.total_tokens || 0).toLocaleString();
+          b1CostEl.textContent = `${escapeHtml(c.formatted_usd)} (${tokensStr} 토큰 / ${escapeHtml(c.formatted_krw)})`;
+        }
+
+        const b1CacheEl = document.getElementById('b1Cache');
+        if (b1CacheEl) {
+          if (b1.cache_enabled) {
+            b1CacheEl.innerHTML = b1.cached
+              ? '<span style="color: #10b981; font-weight: 700;">⚡ 캐시 적중 (0초 즉시 반환)</span>'
+              : '<span style="color: #94a3b8;">신규 임베딩 (캐시 저장 완료)</span>';
+          } else {
+            b1CacheEl.textContent = '캐시 비활성화됨';
+          }
+        }
+
+        let b1PreviewText = `질문: "${b1.question}"\n질문 벡터 샘플: [${b1.sample_vector.join(', ')} ...]`;
+        if (b1.cache_enabled && b1.cached) {
+          b1PreviewText += '\n\n[⚡ 임베딩 캐시]: 이전에 임베딩된 질문 벡터를 캐시에서 0초 즉시 반환했습니다.';
+        }
+        document.getElementById('b1Preview').textContent = b1PreviewText;
+
+        // B2 렌더링
+        const b2 = data.step_b2;
+        const totalMatches = (b2.matches || []).length;
+        document.getElementById('b2TopK').textContent = `${b2.top_k}개 요청 (검색결과: ${totalMatches}개)`;
+        document.getElementById('b2Elapsed').textContent = `${b2.elapsed_ms} ms`;
+        
+        currentB2Matches = b2.matches || [];
+        renderB2ChunkPage(1);
+
+        // B3 렌더링
+        const b3 = data.step_b3;
+        document.getElementById('b3Preview').textContent = b3.rendered_prompt;
+
+        // B4 렌더링 (최종 답변)
+        const b4 = data.step_b4;
+        const providerBadge = b4.provider ? ` (${b4.provider})` : '';
+        document.getElementById('ansModelTag').textContent = `${b4.model_name}${providerBadge}`;
+        document.getElementById('ansElapsedTag').textContent = `응답 소요: ${b4.elapsed_sec}초`;
+        document.getElementById('ansBody').textContent = b4.answer;
+
+        const citeContainer = document.getElementById('ansCitations');
+        citeContainer.innerHTML = '';
+        b4.citations.forEach(c => {
+          const tag = document.createElement('span');
+          tag.className = 'cite-tag';
+          tag.textContent = c;
+          citeContainer.appendChild(tag);
+        });
+
+        // B4 실시간 토큰 카운터 및 과금 바 갱신
+        const costEst = data.cost_estimation || (b4 && b4.cost_estimation);
+        const tokenUse = data.token_usage || (b4 && b4.token_usage);
+        if (costEst && tokenUse) {
+          const ansCostBar = document.getElementById('ansCostBar');
+          document.getElementById('ansTokenCountText').textContent = 
+            `입력: ${tokenUse.input_tokens.toLocaleString()} | 출력: ${tokenUse.output_tokens.toLocaleString()} (총 ${tokenUse.total_tokens.toLocaleString()} 토큰)`;
+          document.getElementById('ansCostText').textContent = 
+            `${costEst.formatted_combined_usd || costEst.formatted_usd} (${costEst.formatted_combined_krw || costEst.formatted_krw})`;
+          if (ansCostBar) ansCostBar.style.display = 'block';
+        }
+
+        answerCard.style.display = 'block';
+        answerCard.scrollIntoView({ behavior: 'smooth' });
+        fetchEmbeddingCacheStats();
+        fetchCostStats();
+
+      } catch (e) {
+        alert('질의 통신 오류: ' + e);
+      } finally {
+        btnAsk.disabled = false;
+        askBtnText.textContent = '질문 전송 (Ask)';
+      }
+    };
+
+    // 엔터키 지원
+    queryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btnAsk.click();
+    });
+
+    // DB 샘플 모달 데이터 가져오기
+    async function fetchDbSample() {
+      const container = document.getElementById('modalDbContent');
+      container.textContent = 'SQLite에서 레코드를 조회하고 있습니다...';
+      try {
+        const res = await fetch('/api/db/sample');
+        const data = await res.json();
+        container.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        container.textContent = '조회 실패: ' + e;
+      }
+    }
+
+    // =========================================================================
+    // 모델별 토큰 카운터 & 과금 분석 대시보드 로직
+    // =========================================================================
+    const costModal = document.getElementById('costModal');
+    let cachedPricingMatrix = null;
+
+    function toggleCostModal(show) {
+      if (show) {
+        costModal.classList.add('open');
+      } else {
+        costModal.classList.remove('open');
+      }
+    }
+
+    function openCostModal(tabName = 'tracker') {
+      toggleCostModal(true);
+      switchCostTab(tabName);
+      fetchCostStats();
+      if (!cachedPricingMatrix) {
+        fetchCostPricing();
+      }
+      if (tabName === 'sim') {
+        runCostSimulation();
+      }
+    }
+
+    function switchCostTab(tabId) {
+      const tabs = ['tracker', 'sim', 'pricing', 'history', 'experiments'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const pane = document.getElementById(`pane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) btn.classList.toggle('active', t === tabId);
+        if (pane) pane.classList.toggle('active', t === tabId);
+      });
+      if (tabId === 'sim') {
+        runCostSimulation();
+      } else if (tabId === 'experiments') {
+        loadExperimentLogs();
+      }
+    }
+
+    // 1. 실시간 세션 통계 가져오기 및 UI 갱신
+    async function fetchCostStats() {
+      try {
+        const res = await fetch('/api/cost/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // 상단 헤더 알약 갱신
+        const headerSessionCost = document.getElementById('headerSessionCost');
+        const headerSessionCostKrw = document.getElementById('headerSessionCostKrw');
+        if (headerSessionCost) headerSessionCost.textContent = `$${data.total_cost_usd.toFixed(4)}`;
+        if (headerSessionCostKrw) headerSessionCostKrw.textContent = `(약 ${data.total_cost_krw.toLocaleString(undefined, {maximumFractionDigits: 1})}원)`;
+
+        // 좌측 사이드바 카드 갱신
+        const cardTotalQueries = document.getElementById('cardTotalQueries');
+        const cardTotalTokens = document.getElementById('cardTotalTokens');
+        const cardTotalCostUsd = document.getElementById('cardTotalCostUsd');
+        const cardTotalCostKrw = document.getElementById('cardTotalCostKrw');
+        if (cardTotalQueries) cardTotalQueries.textContent = `${data.total_queries}회`;
+        if (cardTotalTokens) cardTotalTokens.textContent = `${data.total_tokens.toLocaleString()} 토큰`;
+        if (cardTotalCostUsd) cardTotalCostUsd.textContent = `$${data.total_cost_usd.toFixed(4)}`;
+        if (cardTotalCostKrw) cardTotalCostKrw.textContent = `약 ${data.total_cost_krw.toLocaleString(undefined, {maximumFractionDigits: 1})}원`;
+
+        // 모달 4개 메트릭 카드 갱신
+        const mQueries = document.getElementById('modalMetricQueries');
+        const mTokens = document.getElementById('modalMetricTokens');
+        const mUsd = document.getElementById('modalMetricUsd');
+        const mKrw = document.getElementById('modalMetricKrw');
+        if (mQueries) mQueries.textContent = `${data.total_queries}회`;
+        if (mTokens) mTokens.textContent = `${data.total_tokens.toLocaleString()} 토큰`;
+        if (mUsd) mUsd.textContent = `$${data.total_cost_usd.toFixed(4)}`;
+        if (mKrw) mKrw.textContent = `약 ${data.total_cost_krw.toLocaleString(undefined, {maximumFractionDigits: 1})}원`;
+
+        // 모달 모델별 통계 테이블 및 점유율 바 갱신
+        renderModalModelStats(data.models || [], data.total_cost_usd);
+
+        // 모달 최근 질의 이력 갱신
+        renderModalHistory(data.recent_history || []);
+
+      } catch (err) {
+        console.error('Failed to fetch cost stats:', err);
+      }
+    }
+
+    function renderModalModelStats(models, totalCostUsd) {
+      const tbody = document.getElementById('modalModelTableBody');
+      const barsContainer = document.getElementById('modalModelBarsContainer');
+      if (!tbody) return;
+
+      if (!models || models.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">기록된 질의 내역이 없습니다.</td></tr>';
+        if (barsContainer) barsContainer.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      let barsHtml = '';
+      const colorMap = {
+        'gemini-3.8-flash': '#10b981',
+        'deepseek-ai/deepseek-v4.1-flash-maas': '#38bdf8',
+        'gemini-3.5-flash-lite': '#a855f7',
+        'claude-haiku-5-5': '#f59e0b',
+        'google/gemma-4-26b-a4b-it-maas': '#ec4899',
+        'gemma4:e2b': '#64748b',
+        'text-embedding-004': '#14b8a6',
+        'gemini-embedding-2': '#06b6d4',
+      };
+      const defaultColors = ['#10b981', '#38bdf8', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6', '#06b6d4', '#64748b'];
+
+      models.forEach((m, idx) => {
+        const costShare = totalCostUsd > 0 ? ((m.cost_usd / totalCostUsd) * 100).toFixed(1) : '0.0';
+        const color = colorMap[m.id] || defaultColors[idx % defaultColors.length];
+        const isEmbedding = m.category === 'Embeddings' || (m.id && m.id.includes('embedding'));
+
+        const badgeHtml = isEmbedding
+          ? `<span style="font-size: 0.65rem; background: rgba(20, 184, 166, 0.15); color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.35); padding: 1px 5px; border-radius: 4px; margin-left: 6px; font-weight: 600;">임베딩</span>`
+          : '';
+
+        const outputLabel = isEmbedding ? '<span style="color: #64748b;">-</span>' : (m.output_tokens || 0).toLocaleString();
+
+        html += `
+          <tr>
+            <td style="font-weight: 600; color: #f8fafc;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}; margin-right: 6px;"></span>
+              ${escapeHtml(m.name)}
+              ${badgeHtml}
+            </td>
+            <td style="color: var(--text-muted);">${escapeHtml(m.provider)}</td>
+            <td style="text-align: right; font-family: monospace;">${m.queries}회</td>
+            <td style="text-align: right; font-family: monospace;">${(m.input_tokens || 0).toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace;">${outputLabel}</td>
+            <td style="text-align: right; font-family: monospace; font-weight: 600; color: #cbd5e1;">${(m.total_tokens || 0).toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace; color: #34d399; font-weight: 700;">$${m.cost_usd.toFixed(6)}</td>
+            <td style="text-align: right; font-family: monospace; color: #cbd5e1;">약 ${m.cost_krw.toFixed(2)}원</td>
+          </tr>
+        `;
+
+        if (m.queries > 0 || m.cost_usd > 0) {
+          barsHtml += `
+            <div class="cost-bar-container">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                <span style="color: #f8fafc; font-weight: 600;">${escapeHtml(m.name)} ${badgeHtml}</span>
+                <span style="color: #34d399; font-family: monospace; font-weight: 600;">$${m.cost_usd.toFixed(6)} (${costShare}%)</span>
+              </div>
+              <div class="cost-bar-track">
+                <div class="cost-bar-fill" style="width: ${costShare}%; background: ${color};"></div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      tbody.innerHTML = html;
+      if (barsContainer) barsContainer.innerHTML = barsHtml;
+    }
+
+    function renderModalHistory(historyList) {
+      const tbody = document.getElementById('modalHistoryTableBody');
+      if (!tbody) return;
+
+      if (!historyList || historyList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">최근 질의 내역이 없습니다.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      historyList.forEach(item => {
+        html += `
+          <tr>
+            <td style="font-family: monospace; color: var(--text-muted); font-size: 0.72rem;">${escapeHtml(item.timestamp)}</td>
+            <td style="font-weight: 600; color: #38bdf8;">${escapeHtml(item.model_name)}</td>
+            <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(item.question)}">${escapeHtml(item.question)}</td>
+            <td style="text-align: right; font-family: monospace;">${item.input_tokens.toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace;">${item.output_tokens.toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace; font-weight: 600;">${item.total_tokens.toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace; color: #34d399; font-weight: 700;">$${item.cost_usd.toFixed(6)}</td>
+            <td style="text-align: right; font-family: monospace; color: var(--text-muted); font-size: 0.72rem;">${item.elapsed_sec}s</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // =========================================================================
+    // 5. RAG 실험 분석 로그 & 최적 조합 벤치마크 로직
+    // =========================================================================
+    let currentExpFilter = '';
+
+    async function filterExperimentLogs(type) {
+      currentExpFilter = type;
+      ['All', 'Index', 'Query'].forEach(t => {
+        const btn = document.getElementById(`btnExpFilter${t}`);
+        if (!btn) return;
+        const match = (t === 'All' && !type) || (t === 'Index' && type === 'indexing') || (t === 'Query' && type === 'query');
+        btn.style.background = match ? '#38bdf8' : '#1e293b';
+        btn.style.color = match ? '#0f172a' : '#cbd5e1';
+      });
+      await loadExperimentLogs();
+    }
+
+    async function loadExperimentLogs() {
+      const tbody = document.getElementById('modalExperimentTableBody');
+      if (!tbody) return;
+
+      try {
+        const url = currentExpFilter ? `/api/experiments/logs?limit=50&event_type=${currentExpFilter}` : '/api/experiments/logs?limit=50';
+        const [logsRes, summaryRes] = await Promise.all([
+          fetch(url),
+          fetch('/api/experiments/summary'),
+        ]);
+
+        if (logsRes.ok) {
+          const data = await logsRes.json();
+          renderExperimentTable(data.logs || []);
+        }
+
+        if (summaryRes.ok) {
+          const sData = await summaryRes.json();
+          renderExperimentRecommendations(sData.recommendations || {});
+        }
+      } catch (err) {
+        console.error('Failed to load experiment logs:', err);
+      }
+    }
+
+    function renderExperimentRecommendations(recs) {
+      const bText = document.getElementById('recBestCostText');
+      const fText = document.getElementById('recFastestText');
+      const balText = document.getElementById('recBalancedText');
+
+      if (bText && recs.best_cost_combination) {
+        const b = recs.best_cost_combination;
+        bText.innerHTML = `<span style="color:#34d399; font-weight:700;">${escapeHtml(b.embedding)}</span> + <span style="color:#38bdf8; font-weight:700;">${escapeHtml(b.llm)}</span><br><span style="color:#94a3b8; font-size:0.7rem;">${escapeHtml(b.reason)}</span>`;
+      }
+      if (fText && recs.fastest_combination) {
+        const f = recs.fastest_combination;
+        fText.innerHTML = `<span style="color:#34d399; font-weight:700;">${escapeHtml(f.embedding)}</span> + <span style="color:#38bdf8; font-weight:700;">${escapeHtml(f.llm)}</span><br><span style="color:#94a3b8; font-size:0.7rem;">${escapeHtml(f.reason)}</span>`;
+      }
+      if (balText && recs.balanced_combination) {
+        const bal = recs.balanced_combination;
+        balText.innerHTML = `<span style="color:#34d399; font-weight:700;">${escapeHtml(bal.embedding)}</span> + <span style="color:#38bdf8; font-weight:700;">${escapeHtml(bal.llm)}</span> (${escapeHtml(bal.chunk_size)})<br><span style="color:#94a3b8; font-size:0.7rem;">${escapeHtml(bal.reason)}</span>`;
+      }
+    }
+
+    function renderExperimentTable(logs) {
+      const tbody = document.getElementById('modalExperimentTableBody');
+      if (!tbody) return;
+
+      if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">기록된 실험 로그가 없습니다. 인덱싱 또는 질문을 실행하면 자동으로 저장됩니다!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      logs.forEach(item => {
+        const isIdx = item.event_type === 'indexing';
+        const typeBadge = isIdx
+          ? '<span style="background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">인덱싱 A</span>'
+          : '<span style="background: rgba(56,189,248,0.18); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">질문 B</span>';
+
+        let targetInfo = '';
+        let configInfo = '';
+        let modelsInfo = '';
+        let cacheInfo = '';
+        let elapsed = 0;
+        let tokens = 0;
+        let costUsd = 0;
+
+        if (isIdx) {
+          const doc = item.document || {};
+          const chunking = item.chunking || {};
+          const emb = item.embedding || {};
+          const perf = item.performance || {};
+          const cost = item.cost || {};
+
+          targetInfo = `<div style="font-weight: 600; color: #f8fafc;" title="${escapeHtml(doc.file_path || '')}">${escapeHtml(doc.file_name || '-')}</div><div style="font-size: 0.68rem; color: var(--text-muted);">${doc.file_size_kb || 0} KB</div>`;
+          const ocrStr = doc.ocr_used ? '<span style="color: #c084fc; font-weight: 600;">Gemini OCR</span>' : '일반 PDF';
+          configInfo = `<div>${ocrStr}</div><div style="font-size: 0.7rem; color: #94a3b8;">${doc.total_pages || 0}쪽 / ${chunking.total_chunks || 0}청크 (${chunking.chunk_size || 0}자)</div>`;
+          modelsInfo = `<div style="color: #2dd4bf; font-weight: 600;">${escapeHtml(emb.model || '-')}</div><div style="font-size: 0.68rem; color: var(--text-muted);">${emb.dimension || 0}차원</div>`;
+          cacheInfo = emb.cache_enabled ? `<span style="color:#10b981; font-weight: 600;">적중 ${emb.cache_hit_ratio_pct || 0}%</span>` : '<span style="color:#64748b;">OFF</span>';
+          elapsed = perf.total_elapsed_sec || 0;
+          tokens = cost.total_tokens || 0;
+          costUsd = cost.cost_usd || 0;
+        } else {
+          const q = item.query || {};
+          const models = item.models || {};
+          const ret = item.retrieval || {};
+          const perf = item.performance || {};
+          const cost = item.cost || {};
+
+          targetInfo = `<div style="font-weight: 600; color: #f8fafc; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(q.question || '')}">"${escapeHtml(q.question || '-')}"</div><div style="font-size: 0.68rem; color: var(--text-muted);">출처: ${ret.citations_count || 0}개 쪽 인용</div>`;
+          configInfo = `<div style="color: #fbbf24;">Top-${ret.top_k || 0} 청크</div><div style="font-size: 0.7rem; color: #94a3b8;">검색: ${ret.retrieved_chunks || 0}개</div>`;
+          modelsInfo = `<div style="color: #38bdf8; font-weight: 600;">${escapeHtml(models.llm_model || '-')}</div><div style="font-size: 0.68rem; color: #2dd4bf;">${escapeHtml(models.embedding_model || '-')}</div>`;
+          cacheInfo = ret.query_cache_hit ? '<span style="color:#10b981; font-weight: 700;">⚡ 적중</span>' : (ret.cache_enabled ? '<span style="color:#94a3b8;">신규</span>' : '<span style="color:#64748b;">OFF</span>');
+          elapsed = perf.total_elapsed_sec || 0;
+          tokens = cost.total_tokens || 0;
+          costUsd = cost.total_cost_usd || 0;
+        }
+
+        html += `
+          <tr>
+            <td style="font-family: monospace; font-size: 0.72rem; color: var(--text-muted);">${item.timestamp_kst || (item.timestamp ? item.timestamp.slice(0, 19) : '-')}</td>
+            <td>${typeBadge}</td>
+            <td>${targetInfo}</td>
+            <td>${configInfo}</td>
+            <td>${modelsInfo}</td>
+            <td>${cacheInfo}</td>
+            <td style="text-align: right; font-family: monospace; color: #f8fafc;">${elapsed}초</td>
+            <td style="text-align: right; font-family: monospace; color: #cbd5e1;">${tokens.toLocaleString()}</td>
+            <td style="text-align: right; font-family: monospace; color: #34d399; font-weight: 700;">$${costUsd.toFixed(6)}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    // 2. 실습용 예시 요율표 데이터 가져오기
+    async function fetchCostPricing() {
+      try {
+        const res = await fetch('/api/cost/pricing');
+        if (!res.ok) return;
+        const data = await res.json();
+        cachedPricingMatrix = data.pricing_matrix;
+
+        const tbody = document.getElementById('modalPricingTableBody');
+        if (!tbody) return;
+
+        let html = '';
+        data.pricing_matrix.forEach(p => {
+          const isFree = p.input_price_per_1m === 0;
+          const inputStr = isFree ? '무료 (로컬)' : `$${p.input_price_per_1m.toFixed(2)}`;
+          const outputStr = isFree ? '무료 (로컬)' : (p.output_price_per_1m > 0 ? `$${p.output_price_per_1m.toFixed(2)}` : '-');
+          const cacheStr = isFree ? '무료' : (p.cache_read_price_per_1m > 0 ? `$${p.cache_read_price_per_1m.toFixed(4)}` : '-');
+          const per1kStr = isFree ? '0원' : `$${p.input_per_1k.toFixed(5)} / $${p.output_per_1k.toFixed(5)}`;
+
+          html += `
+            <tr>
+              <td style="font-weight: 600; color: #f8fafc;">
+                <div>${escapeHtml(p.name)}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">${escapeHtml(p.provider)}</div>
+              </td>
+              <td><span class="cite-tag" style="font-size: 0.68rem;">${p.category}</span></td>
+              <td style="color: #34d399; font-family: monospace; font-weight: 600;">${inputStr}</td>
+              <td style="color: #38bdf8; font-family: monospace; font-weight: 600;">${outputStr}</td>
+              <td style="color: #fbbf24; font-family: monospace;">${cacheStr}</td>
+              <td style="color: var(--text-muted); font-family: monospace; font-size: 0.72rem;">${per1kStr}</td>
+              <td style="color: #cbd5e1; font-size: 0.72rem; line-height: 1.4;">${escapeHtml(p.notes)}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } catch (err) {
+        console.error('Failed to fetch pricing:', err);
+      }
+    }
+
+    // 3. 모델별 비용 비교 시뮬레이터 실행
+    async function runCostSimulation() {
+      const inEl = document.getElementById('simInputRange');
+      const outEl = document.getElementById('simOutputRange');
+      const countEl = document.getElementById('simCountRange');
+      if (!inEl || !outEl || !countEl) return;
+
+      const inVal = parseInt(inEl.value, 10);
+      const outVal = parseInt(outEl.value, 10);
+      const countVal = parseInt(countEl.value, 10);
+
+      document.getElementById('simInputVal').textContent = inVal.toLocaleString();
+      document.getElementById('simOutputVal').textContent = outVal.toLocaleString();
+      document.getElementById('simCountVal').textContent = `${countVal.toLocaleString()}회`;
+
+      try {
+        const res = await fetch('/api/cost/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input_tokens: inVal,
+            output_tokens: outVal,
+            query_count: countVal,
+            exchange_rate: 1400.0
+          })
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        renderSimulationResults(data.comparisons || []);
+      } catch (err) {
+        console.error('Simulation failed:', err);
+      }
+    }
+
+    function renderSimulationResults(comparisons) {
+      const container = document.getElementById('simComparisonResults');
+      if (!container) return;
+
+      if (!comparisons || comparisons.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); padding: 1rem;">시뮬레이션 결과를 계산할 수 없습니다.</div>';
+        return;
+      }
+
+      // 최고 비용 모델을 기준으로 바 너비(100%) 환산
+      const maxCost = Math.max(...comparisons.map(c => c.total_usd), 0.000001);
+
+      let html = '';
+      comparisons.forEach((c, idx) => {
+        const isCheapestPaid = (c.total_usd > 0 && idx === 1) || (comparisons[0].total_usd > 0 && idx === 0);
+        const isFree = c.total_usd === 0;
+        const barPct = Math.max(isFree ? 2 : (c.total_usd / maxCost) * 100, 3);
+        const barColor = isFree ? '#64748b' : (isCheapestPaid ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #38bdf8, #6366f1)');
+
+        html += `
+          <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid ${isCheapestPaid ? 'rgba(16, 185, 129, 0.5)' : 'var(--border-color)'}; border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 0.65rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 700; color: #f8fafc; font-size: 0.82rem;">${escapeHtml(c.name)}</span>
+                <span class="cite-tag" style="font-size: 0.68rem;">${escapeHtml(c.provider)}</span>
+                ${isCheapestPaid ? '<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4);">🏆 상용 클라우드 최저 비용</span>' : ''}
+                ${isFree ? '<span style="background: rgba(100, 116, 139, 0.25); color: #94a3b8; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">로컬 온디바이스</span>' : ''}
+              </div>
+              <div style="text-align: right;">
+                <span style="color: #34d399; font-weight: 700; font-family: monospace; font-size: 0.95rem;">${escapeHtml(c.formatted_usd)}</span>
+                <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 4px;">(${escapeHtml(c.formatted_krw)})</span>
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+              <span>단일 질의당: <strong>$${c.single_query_usd.toFixed(6)}</strong> (약 ${c.single_query_krw.toFixed(2)}원)</span>
+              <span>1M 단가: 입력 $${c.rates.input_per_1m} / 출력 $${c.rates.output_per_1m}</span>
+            </div>
+
+            <div class="cost-bar-track" style="height: 10px; background: rgba(15, 23, 42, 0.6);">
+              <div class="cost-bar-fill" style="width: ${barPct}%; background: ${barColor};"></div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // 4. 통계 초기화
+    async function resetCostStats() {
+      if (!confirm('세션의 누적 토큰 및 과금 통계를 초기화하시겠습니까?')) return;
+      try {
+        const res = await fetch('/api/cost/reset', { method: 'POST' });
+        if (res.ok) {
+          await fetchCostStats();
+          const ansCostBar = document.getElementById('ansCostBar');
+          if (ansCostBar) ansCostBar.style.display = 'none';
+          alert('누적 토큰 및 과금 통계가 초기화되었습니다.');
+        }
+      } catch (err) {
+        alert('초기화 실패: ' + err);
+      }
+    }
+
+    // 전역 바인딩 (인라인 onclick 지원)
+    window.resetCostStats = resetCostStats;
+    window.openCostModal = openCostModal;
+    window.toggleCostModal = toggleCostModal;
+    window.switchCostTab = switchCostTab;
+    window.runCostSimulation = runCostSimulation;
+
+    // 이벤트 리스너 연결
+    function bindCostEvents() {
+      const btnOpen1 = document.getElementById('btnOpenCostModal');
+      const btnOpen2 = document.getElementById('btnOpenCostModalCard');
+      const btnReset1 = document.getElementById('btnResetCostInCard');
+      const btnReset2 = document.getElementById('btnResetCostInModal');
+      const btnResetTop = document.getElementById('btnResetCostModalHeader');
+
+      if (btnOpen1) btnOpen1.onclick = () => openCostModal('tracker');
+      if (btnOpen2) btnOpen2.onclick = () => openCostModal('sim');
+      if (btnReset1) btnReset1.onclick = resetCostStats;
+      if (btnReset2) btnReset2.onclick = resetCostStats;
+      if (btnResetTop) btnResetTop.onclick = resetCostStats;
+
+      const inRange = document.getElementById('simInputRange');
+      const outRange = document.getElementById('simOutputRange');
+      const countRange = document.getElementById('simCountRange');
+      if (inRange) inRange.oninput = runCostSimulation;
+      if (outRange) outRange.oninput = runCostSimulation;
+      if (countRange) countRange.oninput = runCostSimulation;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindCostEvents);
+    } else {
+      bindCostEvents();
+    }
+
+    // 페이지 진입 시 초기화
+    const originalInitConfig = initConfig;
+    initConfig = async function() {
+      await originalInitConfig();
+      fetchCostStats();
+      runCostSimulation();
+    };
+
+    initConfig();
+  </script>
+</body>
+</html>
+

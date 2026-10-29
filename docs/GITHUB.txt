@@ -1,0 +1,30 @@
+GitHub 공개용 소스 안내
+=====================
+
+공개 대상: https://github.com/venture21/RAG-tutorial
+
+이 서비스는 로컬 Python 서버입니다. GitHub 저장소는 소스를 배포하며 GitHub Pages만으로
+Python·SQLite·ADC 서버를 실행하지는 않습니다. 수강생은 저장소를 내려받고 OS 안내에 따라 실행합니다.
+
+받는 방법
+---------
+GitHub의 Code → Download ZIP으로 받거나 아래 명령을 사용합니다.
+git clone https://github.com/venture21/RAG-tutorial.git
+cd RAG-tutorial
+
+받은 폴더의 README.md와 docs/INSTALL_MACOS.txt, INSTALL_LINUX.txt, INSTALL_WINDOWS.txt를 따릅니다.
+PDF와 실제 설정·키·DB·캐시·로그는 저장소에 포함하지 않습니다. 본인 .env와 PDF는 로컬에서 준비합니다.
+
+다시 공유할 때
+-------------
+.gitignore는 허용 목록 방식으로 구성했습니다. 새 소스 파일을 추가하려면 build_student_zip.py의
+FILES와 .gitignore 허용 목록도 검토해 함께 갱신합니다. git add -f로 제외 규칙을 무시하지 마세요.
+GitHub 웹의 파일 업로드는 .gitignore 규칙으로 로컬 폴더를 걸러 주지 않습니다.
+개인 데이터가 남은 작업 폴더를 통째로 끌어 올리지 말고, 검증된 배포 ZIP을 푼 소스만 사용합니다.
+공개 이후에 .gitignore를 추가해도 이미 커밋된 비밀정보는 Git 기록에서 자동 삭제되지 않습니다.
+
+CI
+--
+GitHub Actions는 macOS·Linux·Windows의 Python 3.11에서 설치·의존성·오프라인 테스트와
+배포 ZIP 검사를 실행합니다. Cloud 자격증명이나 API 키를 설정할 필요가 없습니다.
+CI 통과는 실제 클라우드 모델·과금 검증과 별개입니다.
