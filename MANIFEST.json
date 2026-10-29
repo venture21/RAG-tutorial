@@ -17,18 +17,18 @@
     },
     {
       "path": ".gitignore",
-      "bytes": 917,
-      "sha256": "cae5679d9acd79e1477f01a376e83dc5ed2ba18ceb6e40fea99a745c46fc2ebf"
+      "bytes": 946,
+      "sha256": "996e84c2d9175f670ac5c63083b62eb85a0f38ff3a74f2d6087b1d043a30afa8"
     },
     {
       "path": "README.md",
-      "bytes": 4772,
-      "sha256": "5f24249a2ca98c3bd9b66da155b56c05d983953c8ec2618730756a7996506156"
+      "bytes": 8483,
+      "sha256": "24dbd559989616a137de6197cc3ca8d33be1cf7d3237dda3bdc4d9745bcfb0a6"
     },
     {
       "path": "RELEASE_NOTES.txt",
-      "bytes": 5140,
-      "sha256": "2eb5d4bb3e64197c837b7f350dd492f441979d1bf54b27dea1e42e36b606cb96"
+      "bytes": 5368,
+      "sha256": "80a8beff5cdda8b1ed59975879bb45f1e938e846fd0d403f4b18d1854ffc2c7a"
     },
     {
       "path": "app_rag.py",
@@ -37,8 +37,8 @@
     },
     {
       "path": "build_student_zip.py",
-      "bytes": 4879,
-      "sha256": "d3d8a70dee76f2fc83c5204407e5040269c84c3ccca0985bcbf412a89730817f"
+      "bytes": 4909,
+      "sha256": "1866deaeb0b5974489931ab59f3c6ca8b664a94232dfe52e6590f42de88002e4"
     },
     {
       "path": "check_setup.py",
@@ -69,6 +69,11 @@
       "path": "docs/INSTALL_WINDOWS.txt",
       "bytes": 5862,
       "sha256": "e774302bfdf3ad465c7ba1752624663977f3b47e02a56c2d551efb38a2a9e5e8"
+    },
+    {
+      "path": "docs/images/app-rag-pc.jpg",
+      "bytes": 221115,
+      "sha256": "f35edfb694247d6ec29463be818141074d4a056f6b100133053f9df1f01b9c8d"
     },
     {
       "path": "embedding_cache.py",

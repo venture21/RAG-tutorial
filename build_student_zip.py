@@ -18,7 +18,7 @@ FILES = [
     "docs/INSTALL_MACOS.txt", "docs/INSTALL_LINUX.txt", "docs/INSTALL_WINDOWS.txt",
     "ref_code/README.txt", "ref_code/claude_haiku_chat.py", "ref_code/deepseek_gcp_chat.py",
     "ref_code/gemma4_gcp_chat.py", "ref_code/gemini_flash_lite_chat.py",
-    "docs/GITHUB.txt", ".github/workflows/offline-checks.yml",
+    "docs/GITHUB.txt", ".github/workflows/offline-checks.yml", "docs/images/app-rag-pc.jpg",
 ]
 FORBIDDEN_PARTS = {".venv", ".cache", "__pycache__", ".ipynb_checkpoints", "data", "logs", "uploads", ".git", ".DS_Store"}
 PATTERNS = {
